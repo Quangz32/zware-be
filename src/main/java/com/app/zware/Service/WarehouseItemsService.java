@@ -1,6 +1,8 @@
 package com.app.zware.Service;
 
+import com.app.zware.Entities.OutboundTransactionDetail;
 import com.app.zware.Entities.WarehouseItems;
+import com.app.zware.HttpEntities.OutboundTransactionDTO;
 import com.app.zware.Repositories.WarehouseItemsRepository;
 import java.util.List;
 import java.util.Optional;
@@ -39,6 +41,18 @@ public class WarehouseItemsService {
     for ( WarehouseItems warehouseItemsToDelete :warehouseItems ){
       warehouseItemsToDelete.setIsdeleted(true);
       warehouseItemsRepository.save(warehouseItemsToDelete);
+    }
+  }
+
+  //delete quantity when outbound success
+  public void deleteQuantity(OutboundTransactionDTO transactionDTO){
+    for (OutboundTransactionDetail detail : transactionDTO.getDetails()) {
+      Integer itemId = detail.getItem_id();
+      Integer zoneId = detail.getZone_id();
+      int quantityTransaction = detail.getQuantity();
+      WarehouseItems warehouseItems = warehouseItemsRepository.findByZoneIdAndItemId(zoneId, itemId);
+      warehouseItems.setQuantity(warehouseItems.getQuantity() - quantityTransaction);
+      warehouseItemsRepository.save(warehouseItems);
     }
   }
 

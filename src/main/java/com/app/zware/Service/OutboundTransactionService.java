@@ -1,9 +1,15 @@
 package com.app.zware.Service;
 
 import com.app.zware.Entities.OutboundTransaction;
+import com.app.zware.Entities.OutboundTransactionDetail;
+import com.app.zware.Entities.User;
+import com.app.zware.HttpEntities.OutboundTransactionDTO;
+import com.app.zware.Repositories.OutboundTransactionDetailRepository;
 import com.app.zware.Repositories.OutboundTransactionRepository;
 import java.util.List;
 import java.util.Optional;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +18,12 @@ public class OutboundTransactionService {
 
   @Autowired
   OutboundTransactionRepository outboundTransactionRepository;
+
+  @Autowired
+  OutboundTransactionDetailRepository detailRepository;
+
+  @Autowired
+  UserService userService;
 
   public List<OutboundTransaction> getAllOutboundTransaction() {
     return outboundTransactionRepository.findAll();
@@ -55,6 +67,47 @@ public class OutboundTransactionService {
 
     outboundTransaction.setIsdeleted(false);
     return outboundTransaction;
+  }
+
+  //create outboundstransaction and list details
+  public OutboundTransactionDTO createOutboundTransactionDTO(OutboundTransactionDTO outboundTransactionDTO, HttpServletRequest request) {
+    //get information maker transaction
+    User requestUser = userService.getRequestMaker(request);
+
+    OutboundTransaction transaction = new OutboundTransaction();
+
+    transaction.setDate(outboundTransactionDTO.getDate());
+    transaction.setMaker_id(requestUser.getId());
+    transaction.setStatus("pending");
+    transaction.setIsdeleted(false);
+
+    if(outboundTransactionDTO.getDestination() != null) {
+      transaction.setDestination(outboundTransactionDTO.getDestination());
+    } else {
+      transaction.setExternal_destination(outboundTransactionDTO.getExternal_destination());
+    }
+
+    //save outboundTransaction
+    OutboundTransaction savedTransaction = outboundTransactionRepository.save(transaction);
+
+    //save list details of transaction
+    List<OutboundTransactionDetail> details = outboundTransactionDTO.getDetails();
+    for (OutboundTransactionDetail detail : details){
+      detail.setTransaction_id(savedTransaction.getId());
+      detailRepository.save(detail);
+    }
+
+    //return transaction
+    OutboundTransactionDTO resultDTO = new OutboundTransactionDTO();
+    resultDTO.setDate(savedTransaction.getDate());
+    resultDTO.setMaker_id(savedTransaction.getMaker_id());
+    resultDTO.setStatus(savedTransaction.getStatus());
+    resultDTO.setDestination(savedTransaction.getDestination());
+    resultDTO.setExternal_destination(savedTransaction.getExternal_destination());
+    resultDTO.setIsdeleted(savedTransaction.getIsdeleted());
+    resultDTO.setDetails(details);
+
+    return resultDTO;
   }
 
 }

@@ -64,7 +64,7 @@ public class OutBoundTransactionValidator {
     if (id == null || !outboundTransactionRepository.existsById(id)) {
       return "Not found OutboundTransactionID";
     }
-    List<String> statusList = Arrays.asList("Pending", "Processing", "Done", "Cancel");
+    List<String> statusList = Arrays.asList("pending", "processing", "done", "cancel");
     if (!statusList.contains(outboundTransaction.getStatus())) {
       return "Status is not valid";
     }
