@@ -3,8 +3,10 @@ package com.app.zware.Controllers;
 import com.app.zware.Entities.InboundTransaction;
 import com.app.zware.Entities.User;
 import com.app.zware.HttpEntities.CustomResponse;
+import com.app.zware.HttpEntities.InboundTransactionDTO;
 import com.app.zware.Service.InboundTransactionService;
 import com.app.zware.Service.UserService;
+import com.app.zware.Validation.InboundTransactionDtoValidator;
 import com.app.zware.Validation.InboundTransactionValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +33,9 @@ public class InboundTransactionController {
 
   @Autowired
   UserService userService;
+
+  @Autowired
+  InboundTransactionDtoValidator inboundTransactionDtoValidator;
 
   @GetMapping("")
   public ResponseEntity<?> index() {
@@ -59,7 +64,7 @@ public class InboundTransactionController {
 
     //Get
     customResponse.setAll(true, "get data of inbound transaction with id " + id + " success",
-        service.getById(id));
+            service.getById(id));
     return new ResponseEntity<>(customResponse, HttpStatus.OK);
   }
 
@@ -85,9 +90,9 @@ public class InboundTransactionController {
 
   @PutMapping("/{id}")
   public ResponseEntity<?> update(
-      @PathVariable Integer id,
-      @RequestBody InboundTransaction transaction,
-      HttpServletRequest request
+          @PathVariable Integer id,
+          @RequestBody InboundTransaction transaction,
+          HttpServletRequest request
   ) {
 
     //response
@@ -95,7 +100,7 @@ public class InboundTransactionController {
     //Validation: Admin or Transaction's maker
     User requestMaker = userService.getRequestMaker(request);
     if (!requestMaker.getRole().equals("admin") && !requestMaker.getId()
-        .equals(transaction.getId())) {
+            .equals(transaction.getId())) {
       customResponse.setAll(false, "You are not allowed", null);
       return new ResponseEntity<>(customResponse, HttpStatus.UNAUTHORIZED);
     }
@@ -120,8 +125,8 @@ public class InboundTransactionController {
 
   @DeleteMapping("{id}")
   public ResponseEntity<?> destroy(
-      @PathVariable Integer id,
-      HttpServletRequest request
+          @PathVariable Integer id,
+          HttpServletRequest request
   ) {
 
     //Response
@@ -163,8 +168,35 @@ public class InboundTransactionController {
 
     //finally
     customResponse.setAll(true, "Get Inbound Transaction Details success",
-        service.getInboundDetailsByTransactionId(id));
+            service.getInboundDetailsByTransactionId(id));
     return new ResponseEntity<>(customResponse, HttpStatus.OK);
 
   }
+
+  @PostMapping("/create")
+  public ResponseEntity<?> createInboundTransaction(@RequestBody InboundTransactionDTO inboundTransactionDTO, HttpServletRequest request) {
+    // Lấy thông tin người tạo yêu cầu từ request
+    User requestMaker = userService.getRequestMaker(request);
+    CustomResponse customResponse = new CustomResponse();
+
+    //Validtion
+    String checkMessage = inboundTransactionDtoValidator.checkPost(inboundTransactionDTO);
+    if(!checkMessage.isEmpty()){
+      customResponse.setAll(false,checkMessage,null);
+      return new ResponseEntity<>(customResponse,HttpStatus.OK);
+    }
+
+
+    // Gọi service để tạo InboundTransaction và lấy kết quả về
+    InboundTransactionDTO createdTransaction = service.createInboundTransaction(inboundTransactionDTO, request);
+
+    // Tạo CustomResponse để đóng gói kết quả thành công và trả về
+
+    customResponse.setAll(true, "Create InboundTransaction successful", createdTransaction);
+    return ResponseEntity.ok(customResponse);
+  }
+
+
+
+
 }

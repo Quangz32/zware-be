@@ -2,10 +2,14 @@ package com.app.zware.Service;
 
 import com.app.zware.Entities.InboundTransaction;
 import com.app.zware.Entities.InboundTransactionDetail;
+import com.app.zware.Entities.User;
+import com.app.zware.HttpEntities.InboundTransactionDTO;
 import com.app.zware.Repositories.InboundTransactionDetailRepository;
 import com.app.zware.Repositories.InboundTransactionRepository;
 import java.util.List;
 import java.util.Optional;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +21,9 @@ public class InboundTransactionService {
 
   @Autowired
   InboundTransactionDetailRepository inboundTransactionDetailRepository;
+
+  @Autowired
+  UserService userService;
 
   public List<InboundTransaction> getAll() {
     return repository.findAll();
@@ -68,4 +75,50 @@ public class InboundTransactionService {
   public List<InboundTransactionDetail> getInboundDetailsByTransactionId(Integer transactionId) {
     return inboundTransactionDetailRepository.findByInboundTransactionId(transactionId);
   }
+
+
+  //create inboundtransaction and list details
+  public InboundTransactionDTO createInboundTransaction(InboundTransactionDTO inboundTransactionDTO, HttpServletRequest request) {
+    // Lấy thông tin người tạo yêu cầu
+    User requestMaker = userService.getRequestMaker(request);
+
+    InboundTransaction inboundTransaction = new InboundTransaction();
+
+
+    inboundTransaction.setDate(inboundTransactionDTO.getDate());
+    inboundTransaction.setMaker_id(requestMaker.getId());
+    inboundTransaction.setStatus("pending"); // Mặc định là pending
+    inboundTransaction.setIsdeleted(false); // Mặc định là false
+
+    // Kiểm tra và thiết lập source hoặc external_source
+    if (inboundTransactionDTO.getSource() != null) {
+      inboundTransaction.setSource(inboundTransactionDTO.getSource());
+    } else {
+      inboundTransaction.setExternal_source(inboundTransactionDTO.getExternal_source());
+    }
+
+    // Lưu inboundTransaction vào cơ sở dữ liệu
+    InboundTransaction savedTransaction = repository.save(inboundTransaction);
+
+    // Lưu các chi tiết giao dịch (details) vào cơ sở dữ liệu
+    List<InboundTransactionDetail> details = inboundTransactionDTO.getDetails();
+    for (InboundTransactionDetail detail : details) {
+      detail.setTransaction_id(savedTransaction.getId());
+      inboundTransactionDetailRepository.save(detail);
+    }
+
+    // Tạo và trả về InboundTransactionDTO từ savedTransaction và details
+    InboundTransactionDTO resultDTO = new InboundTransactionDTO();
+    resultDTO.setDate(savedTransaction.getDate());
+    resultDTO.setMaker_id(savedTransaction.getMaker_id());
+    resultDTO.setStatus(savedTransaction.getStatus());
+    resultDTO.setSource(savedTransaction.getSource());
+    resultDTO.setExternal_source(savedTransaction.getExternal_source());
+    resultDTO.setIsdeleted(savedTransaction.isIsdeleted());
+    resultDTO.setDetails(details);
+
+    return resultDTO;
+  }
+
+
 }
