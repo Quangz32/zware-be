@@ -179,6 +179,12 @@ public class InboundTransactionController {
     User requestMaker = userService.getRequestMaker(request);
     CustomResponse customResponse = new CustomResponse();
 
+    // check Authorization
+    if (!requestMaker.getRole().equals("admin")||!requestMaker.getWarehouse_id().equals(inboundTransactionDTO.getWarehouse_id())){
+      customResponse.setAll(false,"You are not allowed",null);
+      return new ResponseEntity<>(customResponse,HttpStatus.UNAUTHORIZED);
+    }
+
     //Validtion
     String checkMessage = inboundTransactionDtoValidator.checkPost(inboundTransactionDTO);
     if(!checkMessage.isEmpty()){

@@ -26,6 +26,10 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
   boolean existsByIdAndIsDeletedFalse(Integer id);
 
   @Query(value = "SELECT * FROM items i WHERE i.product_id = :productId AND i.expire_date = :expiredDate AND i.isdeleted = false", nativeQuery = true)
-  Item findByProductIdAndExpiredDate(@Param("productId") Integer productId,
+  Optional<Item> findOptionalByProductIdAndExpiredDate(@Param("productId") Integer productId,
       @Param("expiredDate") LocalDate expiredDate);
+
+  @Query(value = "SELECT * FROM items i WHERE i.product_id = :productId AND i.expire_date = :expiredDate AND i.isdeleted = false", nativeQuery = true)
+  Item findByProductIdAndExpiredDate(@Param("productId") Integer productId,
+                                               @Param("expiredDate") LocalDate expiredDate);
 }

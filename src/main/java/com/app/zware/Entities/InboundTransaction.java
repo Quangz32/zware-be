@@ -26,4 +26,6 @@ public class InboundTransaction {
   private String external_source;
 
   private boolean isdeleted = false;
+
+  private Integer warehouse_id;
 }

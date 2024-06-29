@@ -33,4 +33,7 @@ public interface WarehouseZoneRespository extends JpaRepository<WarehouseZone, I
   @Query(value = "select count(*) from warehousezones where warehouse_id=?1 and isdeleted=0",nativeQuery = true)
   Long countZoneInWarehouse(Integer warehouseId);
 
+  @Query(value = "select count(*) from warehousezones where id=?1 and warehouse_id=?2 and isdeleted=0",nativeQuery = true)
+  Long existByIdAndWarehouseId(Integer zoneId,Integer warehouse_id);
+
 }

@@ -56,4 +56,8 @@ public interface WarehouseItemsRepository extends JpaRepository<WarehouseItems, 
     @Query(value = "SELECT * FROM WarehouseItems wi "
             + "WHERE wi.item_id = :id AND wi.quantity > 0 AND wi.isdeleted = false", nativeQuery = true)
     List<WarehouseItems> findByItemId(Integer id);
+
+    // dem so luong trong kho theo item va zoneId
+    @Query(value = "SELECT quantity FROM warehouseitems WHERE item_id = ?1 AND zone_id = ?2 and isdeleted = false",nativeQuery = true)
+    Integer findQuantityByItemIdAndZoneId(Integer itemId, Integer zoneId);
 }
