@@ -8,7 +8,10 @@ import java.util.List;
 
 @Data
 public class OutboundTransactionDTO {
+    private Integer id;
+
     private LocalDate date;
+
     private Integer maker_id;
 
     private String status;
@@ -19,5 +22,14 @@ public class OutboundTransactionDTO {
 
     private boolean isdeleted = false;
 
-    private List<OutboundTransactionDetail> details;
+    private Integer warehouse_id;
+
+
+    private List<TransactionItem> transactionItems; // List of transaction items
+
+    @Data
+    public static class TransactionItem {
+        private Integer productId;
+        private Integer quantityProduct;
+    }
 }

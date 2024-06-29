@@ -44,17 +44,6 @@ public class WarehouseItemsService {
     }
   }
 
-  //delete quantity when outbound success
-  public void deleteQuantity(OutboundTransactionDTO transactionDTO){
-    for (OutboundTransactionDetail detail : transactionDTO.getDetails()) {
-      Integer itemId = detail.getItem_id();
-      Integer zoneId = detail.getZone_id();
-      int quantityTransaction = detail.getQuantity();
-      WarehouseItems warehouseItems = warehouseItemsRepository.findByZoneIdAndItemId(zoneId, itemId);
-      warehouseItems.setQuantity(warehouseItems.getQuantity() - quantityTransaction);
-      warehouseItemsRepository.save(warehouseItems);
-    }
-  }
 
   public Boolean checkWarehouseItemsId(Integer id) {
     return warehouseItemsRepository.existsByIdAndIsDeletedFalse(id);

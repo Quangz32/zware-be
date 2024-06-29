@@ -144,16 +144,17 @@ public class OutboundTransactionController {
         OutboundTransaction mergedOutboundTransaction = outboundTransactionService.merge(id, request);
 
         //Validate
-        String message = outBoundTransactionValidator.checkPut(id, request);
-        if (!message.isEmpty()) {
-            customResponse.setAll(false, message, null);
-            return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
-        }
+        String message = dtoValidator.checkPut(id, request);
+//        if (!message.isEmpty()) {
+//            customResponse.setAll(false, message, null);
+//            return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+//        }
 
         // update
         OutboundTransaction updatedOutboundTransaction = outboundTransactionService.update(
                 mergedOutboundTransaction);
-        customResponse.setAll(true, "OutboundTransaction has been updated", updatedOutboundTransaction);
+//        customResponse.setAll(true, "OutboundTransaction has been updated", updatedOutboundTransaction);
+        customResponse.setAll(true, message, updatedOutboundTransaction);
         return new ResponseEntity<>(customResponse, HttpStatus.OK);
 
     }
@@ -191,7 +192,7 @@ public class OutboundTransactionController {
       //Authorization : ALL
 
       //validation
-      String message = dtoValidator.checkPost(transactionDTO);
+      String message = dtoValidator.checkPost(transactionDTO, requestMaker);
       if(!message.isEmpty()) {
         customResponse.setAll(false, message, null);
         return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
@@ -200,7 +201,7 @@ public class OutboundTransactionController {
       //create transaction
       OutboundTransactionDTO createdTransaction = outboundTransactionService.createOutboundTransactionDTO(transactionDTO,request);
       //return response
-      customResponse.setAll(true, "Create outboundTransaction successful", createdTransaction);
+      customResponse.setAll(true, "Create outboundTransaction successful", null);
       return new ResponseEntity<>(customResponse, HttpStatus.OK);
     }
 }

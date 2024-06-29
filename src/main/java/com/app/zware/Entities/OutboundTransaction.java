@@ -20,4 +20,5 @@ public class OutboundTransaction {
   private Integer destination;
   private String external_destination;
   private Boolean isdeleted = false;
+  private Integer warehouse_id;
 }

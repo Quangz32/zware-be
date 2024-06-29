@@ -56,4 +56,35 @@ public interface WarehouseItemsRepository extends JpaRepository<WarehouseItems, 
     @Query(value = "SELECT * FROM WarehouseItems wi "
             + "WHERE wi.item_id = :id AND wi.quantity > 0 AND wi.isdeleted = false", nativeQuery = true)
     List<WarehouseItems> findByItemId(Integer id);
+
+    // Truy vấn lấy item theo ngày hết hạn gần nhất và đủ quantity
+    @Query(value = "SELECT wi.* FROM warehouseitems wi " +
+            "JOIN warehousezones wz ON wi.zone_id = wz.id " +
+            "JOIN items i ON wi.item_id = i.id " +
+            "WHERE i.product_id = :productId AND wz.warehouse_id = :warehouseId " +
+            "AND wi.isdeleted = false AND wi.quantity > 0  " +
+            "AND wi.isdeleted = false AND i.isdeleted = false " +
+            "AND (i.expire_date IS NULL OR i.expire_date > CURDATE())"+
+            "ORDER BY i.expire_date ASC, wi.quantity DESC", nativeQuery = true)
+    List<WarehouseItems> findNearestExpiryItems(@Param("productId") Integer productId, @Param("warehouseId") Integer warehouseId);
+
+
+    @Query(value = "WITH TotalQuantity AS (\n" +
+            "    SELECT SUM(wi.quantity) AS totalQuantity\n" +
+            "    FROM WarehouseItems wi\n" +
+            "    INNER JOIN Items i ON wi.item_id = i.id\n" +
+            "    INNER JOIN WarehouseZones wz ON wi.zone_id = wz.id\n" +
+            "    WHERE wz.warehouse_id = :warehouseId AND i.product_id = :productId\n" +
+            "),\n" +
+            "ProcessingQuantity AS (\n" +
+            "    SELECT COALESCE(SUM(otd.quantity), 0) AS Processing\n" +
+            "    FROM OutboundTransactionDetails otd\n" +
+            "    INNER JOIN OutboundTransactions ot ON otd.transaction_id = ot.id\n" +
+            "    INNER JOIN Items i ON otd.item_id = i.id\n" +
+            "    WHERE (ot.status = 'pending' OR ot.status = 'processing')\n" +
+            "    AND ot.warehouse_id = :warehouseId AND i.product_id = :productId\n" +
+            ")\n" +
+            "SELECT tq.totalQuantity - pq.Processing AS AvailableQuantity\n" +
+            "FROM TotalQuantity tq, ProcessingQuantity pq;", nativeQuery = true)
+    Integer sumQuantityByProductIdAndWarehouseId(@Param("productId") Integer productId, @Param("warehouseId") Integer warehouseId);
 }
