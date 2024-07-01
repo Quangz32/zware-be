@@ -16,4 +16,7 @@ public interface OutboundTransactionRepository extends JpaRepository<OutboundTra
 
   @Query("SELECT CASE WHEN COUNT(id) > 0 THEN true ELSE false END FROM outboundtransactions i WHERE i.id = ?1 AND i.isdeleted = false")
   boolean existsByIdAndIsDeletedFalse(Integer id);
+
+  @Query(value = "SELECT * FROM outboundtransactions where warehouse_id=?1 and isdeleted =0",nativeQuery = true)
+  List <OutboundTransaction> getOutboundTransactionById (Integer warehouseId);
 }

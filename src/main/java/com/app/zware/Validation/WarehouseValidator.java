@@ -7,6 +7,7 @@ import com.app.zware.Repositories.WarehouseRespository;
 import java.util.Optional;
 
 import com.app.zware.Repositories.WarehouseZoneRespository;
+import com.app.zware.Service.WarehouseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +22,9 @@ public class WarehouseValidator {
 
     @Autowired
     WarehouseZoneRespository warehouseZoneRespository;
+
+    @Autowired
+    WarehouseService warehouseService;
 
     public String checkPost(Warehouse warehouse) {
         if (warehouse.getName().isEmpty()) {
@@ -100,4 +104,14 @@ public class WarehouseValidator {
         return warehouseRespository.existsById(id);
     }
 
+    public String checkGetOutbound(Integer id) {
+        if (!checkWarehouseId(id)) {
+            return "Id not valid";
+        }
+        if(warehouseService.getOutboundByWarehouseId(id).isEmpty()) {
+            return "No transactions found in warehouse.";
+        }
+            return "";
+
+    }
 }

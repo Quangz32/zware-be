@@ -215,7 +215,7 @@ public class WarehouseController {
     String checkMessage = warehouseValidator.checkGet(warehouseId);
     if (!checkMessage.isEmpty()) {
       customResponse.setAll(false, checkMessage, null);
-      return new ResponseEntity<>(customResponse, HttpStatus.OK);
+      return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
 
     }
 
@@ -238,13 +238,34 @@ public class WarehouseController {
     String checkMessage = warehouseValidator.checkGet(warehouseId);
     if (!checkMessage.isEmpty()) {
       customResponse.setAll(false, checkMessage, null);
-      return new ResponseEntity<>(customResponse, HttpStatus.OK);
+      return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
 
     }
 
     //finally
     customResponse.setAll(true, "Get Goods Disposal by warehouse success",
             warehouseService.getGoodsDisposalByWarehouseId(warehouseId));
+
+    return new ResponseEntity<>(customResponse, HttpStatus.OK);
+  }
+
+  @GetMapping("/{warehouseId}/outbound_transactions")
+  public ResponseEntity<?> getOutbound(@PathVariable("warehouseId") Integer warehouseId){
+    //response
+    CustomResponse customResponse = new CustomResponse();
+
+    //Authorization : ALL
+
+    //Validation
+    String checkMessage = warehouseValidator.checkGetOutbound(warehouseId);
+    if (!checkMessage.isEmpty()) {
+      customResponse.setAll(false, checkMessage, null);
+      return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    //finally
+    customResponse.setAll(true, "Get Outbound Transaction by warehouse success",
+            warehouseService.getOutboundByWarehouseId(warehouseId));
 
     return new ResponseEntity<>(customResponse, HttpStatus.OK);
   }
