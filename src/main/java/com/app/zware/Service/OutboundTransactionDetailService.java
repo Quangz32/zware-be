@@ -26,6 +26,10 @@ public class OutboundTransactionDetailService {
     return outboundTransactionDetailRepository.save(request);
   }
 
+  public OutboundTransactionDetail save(OutboundTransactionDetail detail) {
+    return outboundTransactionDetailRepository.save(detail);
+  }
+
   public boolean checkExistId(Integer id) {
     return outboundTransactionDetailRepository.existsById(id);
   }

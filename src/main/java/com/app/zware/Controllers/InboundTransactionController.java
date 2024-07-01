@@ -1,12 +1,24 @@
 package com.app.zware.Controllers;
 
 import com.app.zware.Entities.InboundTransaction;
+import com.app.zware.Entities.InboundTransactionDetail;
+import com.app.zware.Entities.Item;
+import com.app.zware.Entities.OutboundTransactionDetail;
 import com.app.zware.Entities.User;
+import com.app.zware.Entities.WarehouseItems;
 import com.app.zware.HttpEntities.CustomResponse;
+import com.app.zware.HttpEntities.InboundDetailDTO;
+import com.app.zware.HttpEntities.InboundTransactionDTO;
+import com.app.zware.Service.InboundTransactionDetailService;
 import com.app.zware.Service.InboundTransactionService;
+import com.app.zware.Service.ItemService;
 import com.app.zware.Service.UserService;
+import com.app.zware.Service.WarehouseItemsService;
 import com.app.zware.Validation.InboundTransactionValidator;
 import jakarta.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +43,97 @@ public class InboundTransactionController {
 
   @Autowired
   UserService userService;
+
+  @Autowired
+  ItemService itemService;
+
+  @Autowired
+  InboundTransactionDetailService inboundTransactionDetailService;
+
+  @Autowired
+  WarehouseItemsService warehouseItemsService;
+
+  @PostMapping("/create")
+  public ResponseEntity<?> createInboundTransaction(
+      @RequestBody InboundTransactionDTO inboundDto,
+      HttpServletRequest request)
+  {
+    CustomResponse customResponse = new CustomResponse();
+
+    //authorization
+    User requestMaker = userService.getRequestMaker(request);
+    if (!requestMaker.getRole().equals("admin") &&
+        !requestMaker.getWarehouse_id().equals(inboundDto.getWarehouse_id())
+    ){
+      customResponse.setAll(false, "You are not allowed", null);
+      return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+    }
+
+
+
+    //validation
+    String message = validator.checkCreate(inboundDto);
+    if (!message.isEmpty()){
+      customResponse.setAll(false, message, null);
+      return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    //after validation, create and save to DB
+
+    //NEW TRANSACTIOn
+    InboundTransaction newTransaction = new InboundTransaction();
+    newTransaction.setWarehouse_id(inboundDto.getWarehouse_id());
+    newTransaction.setDate(LocalDate.now());
+    newTransaction.setMaker_id(requestMaker.getId());
+    newTransaction.setStatus("pending");  //default when create
+    if (inboundDto.getSource() == null){
+      newTransaction.setExternal_source(inboundDto.getExternal_source());
+    } else{
+      newTransaction.setSource(inboundDto.getSource());
+    }
+
+    InboundTransaction savedTransaction = service.save(newTransaction);
+
+
+
+    //NEW TRANSACTION'S DETAILS
+    //If source is external
+    if (inboundDto.getSource() == null){
+      for (InboundDetailDTO detail : inboundDto.getDetails()){
+        Item itemToSave =
+            itemService.getOrCreateByProductAndDate(detail.getProduct_id(), detail.getExpire_date());
+
+        InboundTransactionDetail detailToSave = new InboundTransactionDetail();
+        detailToSave.setTransaction_id(savedTransaction.getId());
+        detailToSave.setItem_id(itemToSave.getId());
+        detailToSave.setZone_id(detail.getZone_id());
+        detailToSave.setQuantity(detail.getQuantity());
+        inboundTransactionDetailService.save(detailToSave);
+      }
+    } else{
+//      detail: cần lấy sản phầm gì, số lượng bao nhiêu, để vào zone nào
+      for (InboundDetailDTO detail : inboundDto.getDetails()){
+
+        //Tự động lấy hàng cho đủ số lượng, theo đúng thứ tự ưu tiên
+        List<OutboundTransactionDetail> generatedDetailList =
+            warehouseItemsService.createTransactionDetailsByProductAndQuantityAndWarehouse(
+                detail.getProduct_id(), detail.getQuantity(), inboundDto.getSource()
+            );
+        for (OutboundTransactionDetail generatedDetail : generatedDetailList){
+          InboundTransactionDetail detailToSave = new InboundTransactionDetail();
+          detailToSave.setTransaction_id(savedTransaction.getId());
+          detailToSave.setItem_id(generatedDetail.getItem_id());
+          detailToSave.setZone_id(generatedDetail.getZone_id());
+          detailToSave.setQuantity(generatedDetail.getQuantity());
+          inboundTransactionDetailService.save(detailToSave);
+        }
+      }
+    }
+
+
+    customResponse.setAll(true, "Create inbound transaction success", null);
+    return ResponseEntity.ok(customResponse);
+  }
 
   @GetMapping("")
   public ResponseEntity<?> index() {

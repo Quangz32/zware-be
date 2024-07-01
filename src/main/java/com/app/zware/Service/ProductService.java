@@ -139,4 +139,7 @@ public class ProductService {
     return (dotIndex == -1) ? "" : fileName.substring(dotIndex);
   }
 
+  public boolean existById(Integer id){
+    return productRepository.existsByIdAndIsDeletedFalse(id);
+  }
 }

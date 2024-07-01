@@ -28,6 +28,7 @@ public class InboundTransactionService {
 
   public InboundTransaction save(InboundTransaction transaction) {
     InboundTransaction inboundTransaction = new InboundTransaction();
+    inboundTransaction.setWarehouse_id(transaction.getWarehouse_id());
     inboundTransaction.setDate(transaction.getDate());
     inboundTransaction.setMaker_id(transaction.getMaker_id());
     inboundTransaction.setStatus(transaction.getStatus());

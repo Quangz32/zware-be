@@ -103,4 +103,8 @@ public class UserService {
   public Warehouse getWarehouseByUser(Integer id){
     return warehouseRespository.findByUserId(id);
   }
+
+  public boolean existById(Integer id) {
+    return userRepository.existByIdAndIsDeletedFalse(id);
+  }
 }

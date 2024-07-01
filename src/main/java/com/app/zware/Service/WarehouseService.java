@@ -75,4 +75,8 @@ public class WarehouseService {
     return warehouseItemsRepository.findWarehouseItemByWarehouseId(warehouseId);
   }
 
+  public boolean existById(Integer warehouseId){
+    return wareHouseRespository.existByIdAndIsDeletedFalse(warehouseId);
+  }
+
 }

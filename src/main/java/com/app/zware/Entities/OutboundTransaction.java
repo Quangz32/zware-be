@@ -14,6 +14,7 @@ public class OutboundTransaction {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer id;
+  private Integer warehouse_id;
   private LocalDate date;
   private Integer maker_id;
   private String status;

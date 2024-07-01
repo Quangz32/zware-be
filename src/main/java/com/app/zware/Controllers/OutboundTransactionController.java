@@ -1,14 +1,20 @@
 package com.app.zware.Controllers;
 
+import com.app.zware.Entities.InboundTransaction;
 import com.app.zware.Entities.OutboundTransaction;
 import com.app.zware.Entities.OutboundTransactionDetail;
 import com.app.zware.Entities.User;
 import com.app.zware.HttpEntities.CustomResponse;
+import com.app.zware.HttpEntities.OutboundDetailDTO;
+import com.app.zware.HttpEntities.OutboundTransactionDTO;
 import com.app.zware.Repositories.OutboundTransactionDetailRepository;
+import com.app.zware.Service.OutboundTransactionDetailService;
 import com.app.zware.Service.OutboundTransactionService;
 import com.app.zware.Service.UserService;
+import com.app.zware.Service.WarehouseItemsService;
 import com.app.zware.Validation.OutBoundTransactionValidator;
 import jakarta.servlet.http.HttpServletRequest;
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -37,6 +43,68 @@ public class OutboundTransactionController {
 
   @Autowired
   OutboundTransactionDetailRepository outboundTransactionDetailRepository;
+
+  @Autowired
+  WarehouseItemsService warehouseItemsService;
+
+  @Autowired
+  OutboundTransactionDetailService outboundTransactionDetailService;
+
+  @PostMapping("/create")
+  public ResponseEntity<?> createOutboundTransaction(
+     @RequestBody OutboundTransactionDTO transactionDTO,
+      HttpServletRequest request
+  ){
+    CustomResponse customResponse = new CustomResponse();
+
+    //authorization
+    User requestMaker = userService.getRequestMaker(request);
+    if (!requestMaker.getRole().equals("admin") &&
+        !requestMaker.getWarehouse_id().equals(transactionDTO.getWarehouse_id())
+    ){
+      customResponse.setAll(false, "You are not allowed", null);
+      return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+    }
+
+
+    //validation
+    String message = outBoundTransactionValidator.checkCreate(transactionDTO);
+    if (!message.isEmpty()){
+      customResponse.setAll(false, message, null);
+      return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    //Save to db
+    //NEW TRANSACTION
+    OutboundTransaction newTransaction = new OutboundTransaction();
+    newTransaction.setWarehouse_id(transactionDTO.getWarehouse_id());
+    newTransaction.setDate(LocalDate.now());
+    newTransaction.setMaker_id(requestMaker.getId());
+    newTransaction.setStatus("pending");  //default when create
+    if (transactionDTO.getDestination() == null){
+      newTransaction.setExternal_destination(transactionDTO.getExternal_destination());
+    } else{
+      newTransaction.setDestination(transactionDTO.getDestination());
+    }
+
+    OutboundTransaction savedTransaction = outboundTransactionService.save(newTransaction);
+
+    for (OutboundDetailDTO detail : transactionDTO.getDetails()){
+      List<OutboundTransactionDetail> generatedDetailList =
+          warehouseItemsService.createTransactionDetailsByProductAndQuantityAndWarehouse(
+          detail.getProduct_id(), detail.getQuantity(), transactionDTO.getWarehouse_id()
+          );
+
+      for (OutboundTransactionDetail generatedDetail : generatedDetailList){
+        generatedDetail.setTransaction_id(savedTransaction.getId());
+        outboundTransactionDetailService.save(generatedDetail);
+      }
+      System.out.println(detail);
+    }
+
+      customResponse.setAll(true, "Create outbound transaction succeess", null);
+    return ResponseEntity.ok(customResponse);
+  }
 
   @GetMapping("")
   public ResponseEntity<?> index() {

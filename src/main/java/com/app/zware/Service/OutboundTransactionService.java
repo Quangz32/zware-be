@@ -28,6 +28,10 @@ public class OutboundTransactionService {
     return outboundTransactionRepository.save(request);
   }
 
+  public OutboundTransaction save(OutboundTransaction transaction){
+    return outboundTransactionRepository.save(transaction);
+  }
+
   public void deleteOutboundTransaction(Integer id) {
     OutboundTransaction outboundTransaction = getOutboundTransactionById(id);
     outboundTransaction.setIsdeleted(true);
@@ -55,6 +59,10 @@ public class OutboundTransactionService {
 
     outboundTransaction.setIsdeleted(false);
     return outboundTransaction;
+  }
+
+  public boolean existById(Integer id){
+    return outboundTransactionRepository.existsByIdAndIsDeletedFalse(id);
   }
 
 }

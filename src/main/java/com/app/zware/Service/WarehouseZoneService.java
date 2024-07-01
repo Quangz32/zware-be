@@ -58,4 +58,8 @@ public class WarehouseZoneService {
   public WarehouseZone update(WarehouseZone mergedWarehouseZone) {
     return warehouseZoneRespository.save(mergedWarehouseZone);
   }
+
+  public boolean existById(Integer id){
+    return warehouseZoneRespository.existsByIdAndIsDeletedFalse(id);
+  }
 }
