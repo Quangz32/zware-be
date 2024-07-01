@@ -21,6 +21,9 @@ public class DisposedGoodService {
     return disposedGoodRespository.findById(id).orElse(null);
   }
 
+  public List<DisposedGood> getByGoodDisposal(Integer disposalId){
+    return disposedGoodRespository.findByGoodDisposalId(disposalId);
+  }
   public DisposedGood createDisposedGood(DisposedGood request) {
     return disposedGoodRespository.save(request);
   }

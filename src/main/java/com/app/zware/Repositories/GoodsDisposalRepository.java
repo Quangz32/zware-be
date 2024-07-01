@@ -22,5 +22,5 @@ public interface GoodsDisposalRepository extends JpaRepository<GoodsDisposal, In
   boolean existByIdAndIsDeletedFalse(Integer id);
 
   @Query(value = "SELECT * FROM goodsdisposal WHERE warehouse_id=?1 and isdeleted=0",nativeQuery = true)
-  List<GoodsDisposal> getGoodsDisposalByWarehouseId(Integer warehouseId);
+  List<GoodsDisposal> findByWarehouse(Integer warehouseId);
 }
