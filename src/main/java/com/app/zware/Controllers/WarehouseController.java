@@ -202,6 +202,52 @@ public class WarehouseController {
     return new ResponseEntity<>(customResponse, HttpStatus.OK);
 
   }
+
+
+  @GetMapping("/{warehouseId}/inbound_transactions")
+  public ResponseEntity<?> getInbound(@PathVariable("warehouseId") Integer warehouseId) {
+    //response
+    CustomResponse customResponse = new CustomResponse();
+
+    //Authorization : ALL
+
+    //Validation
+    String checkMessage = warehouseValidator.checkGet(warehouseId);
+    if (!checkMessage.isEmpty()) {
+      customResponse.setAll(false, checkMessage, null);
+      return new ResponseEntity<>(customResponse, HttpStatus.OK);
+
+    }
+
+    //finally
+    customResponse.setAll(true, "Get Inbound Transaction by warehouse success",
+            warehouseService.getInboundByWarehouseId(warehouseId));
+
+    return new ResponseEntity<>(customResponse, HttpStatus.OK);
+
+  }
+
+  @GetMapping("/{warehouseId}/goods_disposal")
+  public ResponseEntity<?> getGoodsDisposal(@PathVariable("warehouseId") Integer warehouseId){
+    //response
+    CustomResponse customResponse = new CustomResponse();
+
+    //Authorization : ALL
+
+    //Validation
+    String checkMessage = warehouseValidator.checkGet(warehouseId);
+    if (!checkMessage.isEmpty()) {
+      customResponse.setAll(false, checkMessage, null);
+      return new ResponseEntity<>(customResponse, HttpStatus.OK);
+
+    }
+
+    //finally
+    customResponse.setAll(true, "Get Goods Disposal by warehouse success",
+            warehouseService.getGoodsDisposalByWarehouseId(warehouseId));
+
+    return new ResponseEntity<>(customResponse, HttpStatus.OK);
+  }
 }
 
 
