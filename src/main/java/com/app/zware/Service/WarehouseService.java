@@ -26,6 +26,9 @@ public class WarehouseService {
   @Autowired
   GoodsDisposalRepository goodsDisposalRepository;
 
+  @Autowired
+  OutboundTransactionRepository outboundTransactionRepository;
+
 
   public List<Warehouse> getWarehouse() {
     return wareHouseRespository.findAll();
@@ -90,5 +93,8 @@ public class WarehouseService {
     return goodsDisposalRepository.getGoodsDisposalByWarehouseId(warehouseId);
   }
 
+  public List<OutboundTransaction> getOutboundByWarehouseId(Integer warehouseId){
+    return outboundTransactionRepository.getOutboundTransactionById(warehouseId);
+  }
 
 }
