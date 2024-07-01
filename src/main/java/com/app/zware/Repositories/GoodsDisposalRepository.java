@@ -20,4 +20,7 @@ public interface GoodsDisposalRepository extends JpaRepository<GoodsDisposal, In
 
   @Query("select case when COUNT(id)>0 THEN true ELSE false END FROM goodsdisposal g where g.id=?1 and g.isdeleted = false")
   boolean existByIdAndIsDeletedFalse(Integer id);
+
+  @Query(value = "SELECT * FROM goodsdisposal WHERE warehouse_id=?1 and isdeleted=0",nativeQuery = true)
+  List<GoodsDisposal> getGoodsDisposalByWarehouseId(Integer warehouseId);
 }

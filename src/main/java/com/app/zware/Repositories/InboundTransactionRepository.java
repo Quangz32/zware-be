@@ -19,4 +19,7 @@ public interface InboundTransactionRepository extends JpaRepository<InboundTrans
 
   @Query(value = "select case when COUNT(id)>0 THEN true ELSE false END FROM inboundtransactions where id=?1 and isdeleted = false")
   boolean existByIdAndIsDeletedFalse(Integer id);
+
+  @Query(value = "SELECT * FROM inboundtransactions where warehouse_id=?1 and isdeleted =0",nativeQuery = true)
+  List <InboundTransaction> getInboundTransactionById (Integer warehouseId);
 }

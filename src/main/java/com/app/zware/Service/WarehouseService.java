@@ -1,11 +1,8 @@
 package com.app.zware.Service;
 
-import com.app.zware.Entities.Warehouse;
-import com.app.zware.Entities.WarehouseItems;
-import com.app.zware.Entities.WarehouseZone;
-import com.app.zware.Repositories.WarehouseItemsRepository;
-import com.app.zware.Repositories.WarehouseRespository;
-import com.app.zware.Repositories.WarehouseZoneRespository;
+import com.app.zware.Entities.*;
+import com.app.zware.Repositories.*;
+
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +19,12 @@ public class WarehouseService {
 
   @Autowired
   WarehouseItemsRepository warehouseItemsRepository;
+
+  @Autowired
+  InboundTransactionRepository inboundTransactionRepository;
+
+  @Autowired
+  GoodsDisposalRepository goodsDisposalRepository;
 
 
   public List<Warehouse> getWarehouse() {
@@ -78,5 +81,14 @@ public class WarehouseService {
   public boolean existById(Integer warehouseId){
     return wareHouseRespository.existByIdAndIsDeletedFalse(warehouseId);
   }
+
+  public List<InboundTransaction> getInboundByWarehouseId(Integer warehouseId){
+    return inboundTransactionRepository.getInboundTransactionById(warehouseId);
+  }
+
+  public List<GoodsDisposal> getGoodsDisposalByWarehouseId(Integer warehouseId){
+    return goodsDisposalRepository.getGoodsDisposalByWarehouseId(warehouseId);
+  }
+
 
 }
