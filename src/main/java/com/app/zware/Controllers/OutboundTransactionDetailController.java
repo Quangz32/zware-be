@@ -7,6 +7,7 @@ import com.app.zware.Entities.User;
 import com.app.zware.HttpEntities.CustomResponse;
 import com.app.zware.Service.OutboundTransactionDetailService;
 import com.app.zware.Service.UserService;
+import com.app.zware.Validation.OutBoundTransactionValidator;
 import com.app.zware.Validation.OutboundTransactionDetailValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -34,6 +36,9 @@ public class OutboundTransactionDetailController {
 
   @Autowired
   UserService userService;
+
+  @Autowired
+  OutBoundTransactionValidator outBoundTransactionValidator;
 
   @GetMapping("")
   public ResponseEntity<?> index() {
@@ -70,6 +75,26 @@ public class OutboundTransactionDetailController {
           , outboundTransactionDetailService.getById(id));
       return new ResponseEntity<>(customResponse, HttpStatus.OK);
     }
+  }
+
+  @GetMapping(params = "transaction_id")
+  public ResponseEntity<?> getByOutboundTransaction(
+      @RequestParam("transaction_id") Integer transactionId) {
+    //response
+    CustomResponse customResponse = new CustomResponse();
+    //Validation: All
+    //check validate
+    String message = outBoundTransactionValidator.checkGet(transactionId);
+    if (!message.isEmpty()) {
+      //error
+      customResponse.setAll(false, message, null);
+      return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+    }
+    //approve get
+    customResponse.setAll(true,
+        "Get detail of outbound transaction [" + transactionId + "] success"
+        , outboundTransactionDetailService.getByOutboundTransaction(transactionId));
+    return new ResponseEntity<>(customResponse, HttpStatus.OK);
   }
 
   @PostMapping("")
@@ -162,4 +187,6 @@ public class OutboundTransactionDetailController {
       return new ResponseEntity<>(customResponse, HttpStatus.OK);
     }
   }
+
+
 }

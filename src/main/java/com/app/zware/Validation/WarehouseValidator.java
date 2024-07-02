@@ -77,7 +77,7 @@ public class WarehouseValidator {
 
     public String checkGet(Integer id) {
         if (!checkWarehouseId(id)) {
-            return "Id not valid";
+            return "Warehouse Id not valid";
         } else {
             return "";
         }
@@ -102,16 +102,5 @@ public class WarehouseValidator {
 
     private boolean checkIdExist(Integer id) {
         return warehouseRespository.existsById(id);
-    }
-
-    public String checkGetOutbound(Integer id) {
-        if (!checkWarehouseId(id)) {
-            return "Id not valid";
-        }
-        if(warehouseService.getOutboundByWarehouseId(id).isEmpty()) {
-            return "No transactions found in warehouse.";
-        }
-            return "";
-
     }
 }

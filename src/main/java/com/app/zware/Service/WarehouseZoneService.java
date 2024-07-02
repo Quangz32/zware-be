@@ -62,4 +62,8 @@ public class WarehouseZoneService {
   public boolean existById(Integer id){
     return warehouseZoneRespository.existsByIdAndIsDeletedFalse(id);
   }
+
+  public List<WarehouseZone> getByWarehouse(Integer warehouseId){
+    return warehouseZoneRespository.findByWarehouseId(warehouseId);
+  }
 }
