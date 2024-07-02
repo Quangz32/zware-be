@@ -7,7 +7,9 @@ import com.app.zware.Service.GoodsDisposalService;
 import com.app.zware.Service.UserService;
 import com.app.zware.Service.WarehouseService;
 import com.app.zware.Validation.GoodsDisposalValidator;
+import com.app.zware.Validation.WarehouseValidator;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.websocket.server.PathParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,10 +20,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/goodsdisposal")
+@RequestMapping("/api/goods_disposal")
 public class GoodsDisposalController {
 
   @Autowired
@@ -35,6 +38,9 @@ public class GoodsDisposalController {
 
   @Autowired
   WarehouseService warehouseService;
+
+  @Autowired
+  WarehouseValidator warehouseValidator;
 
   @GetMapping("")
   public ResponseEntity<?> index() {
@@ -149,16 +155,15 @@ public class GoodsDisposalController {
     return new ResponseEntity<>(customResponse, HttpStatus.OK);
   }
 
-  @GetMapping("/{goodsDisposalId}/details")
-  public ResponseEntity<?> getDisposedGood(
-      @PathVariable("goodsDisposalId") Integer goodDisposalId) {
-    //Response
+  @GetMapping(params = "warehouse_id")
+  public ResponseEntity<?> getByWarehouseId(@RequestParam("warehouse_id") Integer warehouseId){
+    //response
     CustomResponse customResponse = new CustomResponse();
 
     //Authorization : ALL
 
     //Validation
-    String checkMessage = goodsDisposalValidator.checkGet(goodDisposalId);
+    String checkMessage = warehouseValidator.checkGet(warehouseId);
     if (!checkMessage.isEmpty()) {
       customResponse.setAll(false, checkMessage, null);
       return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
@@ -166,8 +171,9 @@ public class GoodsDisposalController {
     }
 
     //finally
-    customResponse.setAll(false, "get disposal good by goods disposal success ",
-        goodsDisposalService.getDisposedGoodByGoodsDisposalId(goodDisposalId));
+    customResponse.setAll(true, "Get Goods Disposal by warehouse success",
+        goodsDisposalService.getByWarehouse(warehouseId));
+
     return new ResponseEntity<>(customResponse, HttpStatus.OK);
   }
 

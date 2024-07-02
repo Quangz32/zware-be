@@ -89,10 +89,6 @@ public class WarehouseService {
     return inboundTransactionRepository.getInboundTransactionById(warehouseId);
   }
 
-  public List<GoodsDisposal> getGoodsDisposalByWarehouseId(Integer warehouseId){
-    return goodsDisposalRepository.getGoodsDisposalByWarehouseId(warehouseId);
-  }
-
   public List<OutboundTransaction> getOutboundByWarehouseId(Integer warehouseId){
     return outboundTransactionRepository.getOutboundTransactionById(warehouseId);
   }

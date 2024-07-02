@@ -8,6 +8,7 @@ import com.app.zware.Service.DisposedGoodService;
 import com.app.zware.Service.GoodsDisposalService;
 import com.app.zware.Service.UserService;
 import com.app.zware.Validation.DisposedGoodValidator;
+import com.app.zware.Validation.GoodsDisposalValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,10 +20,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/disposedgood")
+@RequestMapping("/api/disposed_goods")
 public class DisposedGoodController {
 
   @Autowired
@@ -36,6 +38,9 @@ public class DisposedGoodController {
 
   @Autowired
   GoodsDisposalService goodsDisposalService;
+
+  @Autowired
+  GoodsDisposalValidator goodsDisposalValidator;
 
   @GetMapping("")
   public ResponseEntity<?> index() {
@@ -168,5 +173,27 @@ public class DisposedGoodController {
     customResponse.setAll(true, "Disposed update success", updated);
     return new ResponseEntity<>(customResponse, HttpStatus.OK);
 
+  }
+
+  @GetMapping(params = "disposal_id")
+  public ResponseEntity<?> getByDisposal(
+      @RequestParam("disposal_id") Integer goodDisposalId) {
+    //Response
+    CustomResponse customResponse = new CustomResponse();
+
+    //Authorization : ALL
+
+    //Validation
+    String checkMessage = goodsDisposalValidator.checkGet(goodDisposalId);
+    if (!checkMessage.isEmpty()) {
+      customResponse.setAll(false, checkMessage, null);
+      return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+
+    }
+
+    //finally
+    customResponse.setAll(false, "get disposal good by goods disposal success ",
+        disposedGoodService.getByGoodDisposal(goodDisposalId));
+    return new ResponseEntity<>(customResponse, HttpStatus.OK);
   }
 }

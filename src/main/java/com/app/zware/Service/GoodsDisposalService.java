@@ -15,9 +15,6 @@ public class GoodsDisposalService {
   @Autowired
   GoodsDisposalRepository goodsDisposalRepository;
 
-  @Autowired
-  DisposedGoodRespository disposedGoodRespository;
-
   public List<GoodsDisposal> findAllGoods() {
     return goodsDisposalRepository.findAll();
   }
@@ -63,7 +60,7 @@ public class GoodsDisposalService {
     return goodsDisposalRepository.save(mergeGoodsDisposal);
   }
 
-  public List<DisposedGood> getDisposedGoodByGoodsDisposalId(Integer disposalId) {
-    return disposedGoodRespository.findByGoodDisposalId(disposalId);
+  public List<GoodsDisposal> getByWarehouse(Integer warehouseId){
+    return goodsDisposalRepository.findByWarehouse(warehouseId);
   }
 }
