@@ -134,4 +134,20 @@ public class WarehouseItemsService {
 
     return detailList;
   }
+
+  public List<WarehouseItems> findByZoneId(Integer zoneId){
+    return warehouseItemsRepository.findByZoneId(zoneId);
+  }
+
+  public List<WarehouseItems> findByWarehouseId(Integer warehouseId){
+    return warehouseItemsRepository.findWarehouseItemByWarehouseId(warehouseId);
+  }
+
+  public List<WarehouseItems> findByProductAndWarehouse(Integer productId, Integer warehouseId){
+    return warehouseItemsRepository.findByProductAndWarehouse(productId,warehouseId);
+  }
+
+  public List<WarehouseItems> findByProductId(Integer productId){
+    return warehouseItemsRepository.findByProductId(productId);
+  }
 }

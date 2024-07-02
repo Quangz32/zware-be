@@ -3,6 +3,11 @@ DROP DATABASE IF EXISTS warehouse_management;
 CREATE DATABASE warehouse_management;
 USE warehouse_management;
 
+-- Table: Warehouses-- Xóa cơ sở dữ liệu nếu tồn tại và tạo lại
+DROP DATABASE IF EXISTS warehouse_management;
+CREATE DATABASE warehouse_management;
+USE warehouse_management;
+
 -- Table: Warehouses
 CREATE TABLE Warehouses (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -110,7 +115,7 @@ CREATE TABLE InboundTransactions (
     external_source VARCHAR(255),
     isdeleted BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (maker_id) REFERENCES Users(id) ON DELETE SET NULL,
-    FOREIGN KEY (source) REFERENCES OutboundTransactions(id) ON DELETE SET NULL
+    FOREIGN KEY (source) REFERENCES Warehouses(id) ON DELETE SET NULL
 );
 
 -- Table: InboundTransactionDetails
@@ -148,90 +153,148 @@ CREATE TABLE DisposedGoods (
     FOREIGN KEY (item_id) REFERENCES Items(id) ON DELETE SET NULL
 );
 
+-- Add warehouse_id column to InboundTransactions
+ALTER TABLE InboundTransactions
+ADD warehouse_id INT;
+
+-- Add warehouse_id column to OutboundTransactions
+ALTER TABLE OutboundTransactions
+ADD warehouse_id INT;
+
+
+-- Add foreign key constraint to InboundTransactions
+ALTER TABLE InboundTransactions
+ADD FOREIGN KEY (warehouse_id) REFERENCES Warehouses(id) ON DELETE SET NULL;
+
+-- Add foreign key constraint to OutboundTransactions
+ALTER TABLE OutboundTransactions
+ADD FOREIGN KEY (warehouse_id) REFERENCES Warehouses(id) ON DELETE SET NULL;
+
 -- Insert data into Warehouses
 INSERT INTO Warehouses (name, address) VALUES
-('Central Warehouse', '123 Main St'),
-('East Warehouse', '456 East St'),
-('West Warehouse', '789 West St');
+('Kho Quang Ninh', 'Quang Yen, Quang Ninh'),
+('Kho Vinh Phuc', 'Tam Dao, Vinh Phuc'),
+('Kho Ha Noi', 'Cau Giay, Ha Noi');
 
 -- Insert data into Users
 INSERT INTO Users (email, password, name, role, date_of_birth, phone, gender, avatar, warehouse_id) VALUES
-('admin@gmail.com','$2a$10$gGt3geJe5eXO6.QpOfrKYeBwyaYfPI71lGXOw242ax1BD9j8MVYHO','Admin','admin',NULL, NULL, NULL, NULL, NULL),
-( 'hai@gmail.com', '$2a$10$9cjK2lNEetSJZ9Y57niiP.LyQHmYIQGio/UicKnu9EIkoKBi7E0hW', 'Hai', 'admin', NULL, '0123926323', 'male', 'avatar2.png', 1),
-( 'quang@gmail.com', '$2a$10$NgvBZt65aQq9WrIuF3HvNeCWiVH4wXcvSEKvJ/gCMLKobPKSiWsaK', 'Quangz', 'manager', NULL, '0123926323', 'male', 'avatar2.png', 1),
-( 'quan@gmail.com', '$2a$10$xgMmEFKYr/PZF4bqxQRXcu64ozUY6aOF5YMIP75EQIi/w7KdeJcm.', 'Quan', 'admin', '2003-02-03', '0287583623', 'male', 'avatar2.png', 3),
-( 'hang@gmail.com', '$2a$10$ET3CJR4rjMgXqt6yzt3lCu9QcMX4.VW9NnmlXIER75sUf7uu0wISu', 'Hang', 'manager', '2003-02-03', '0230523782', 'female', 'avatar2.png', 2),
-( 'long@gmail.com', '$2a$10$hy83q/ZvTa7kivSmiw2WeeL3japDuAAoo4hbZca4ega4Kwhzux7WW', 'Long', 'admin', '2003-02-03', '0123346346', 'male', 'avatar2.png', 3),
-( 'meo@gmail.com', '$2a$10$3Y0wGDE6A7lCggAjAGxO0uaIknPZn9L/m5k5llVn6twiJyDbDMfxO', 'Meo', 'manager', '2003-02-03', '01234t343t', 'male', 'avatar2.png', 3);
+('admin@gmail.com','$2a$10$gGt3geJe5eXO6.QpOfrKYeBwyaYfPI71lGXOw242ax1BD9j8MVYHO','Admin','admin',NULL, NULL, NULL, NULL, 1),
+( 'hai@gmail.com', '$2a$10$9cjK2lNEetSJZ9Y57niiP.LyQHmYIQGio/UicKnu9EIkoKBi7E0hW', 'Hai', 'admin', NULL, NULL, NULL, NULL, 2),
+( 'quang@gmail.com', '$2a$10$NgvBZt65aQq9WrIuF3HvNeCWiVH4wXcvSEKvJ/gCMLKobPKSiWsaK', 'Quangz', 'manager', NULL, NULL, NULL, NULL, 3),
+( 'quan@gmail.com', '$2a$10$xgMmEFKYr/PZF4bqxQRXcu64ozUY6aOF5YMIP75EQIi/w7KdeJcm.', 'Quan', 'admin', NULL, NULL, NULL, NULL, 1),
+( 'hang@gmail.com', '$2a$10$ET3CJR4rjMgXqt6yzt3lCu9QcMX4.VW9NnmlXIER75sUf7uu0wISu', 'Hang', 'manager', NULL, NULL, NULL, NULL, 2),
+( 'long@gmail.com', '$2a$10$hy83q/ZvTa7kivSmiw2WeeL3japDuAAoo4hbZca4ega4Kwhzux7WW', 'Long', 'admin', NULL, NULL, NULL, NULL, 3),
+( 'meo@gmail.com', '$2a$10$3Y0wGDE6A7lCggAjAGxO0uaIknPZn9L/m5k5llVn6twiJyDbDMfxO', 'Meo', 'manager', NULL, NULL, NULL, NULL, 1);
 
 -- Insert data into WarehouseZones
 INSERT INTO WarehouseZones (warehouse_id, name) VALUES
-(1, 'Zone A'),
-(1, 'Zone B'),
-(2, 'Zone C'),
-(2, 'Zone D'),
-(3, 'Zone E'),
-(3, 'Zone F');
+(1, 'QN-A'),
+(1, 'QN-B'),
+(2, 'VP-A'),
+(2, 'VP-B'),
+(3, 'HN-A'),
+(3, 'HN-B');
 
 -- Insert data into Categories
 INSERT INTO Categories (name) VALUES
-('Electronics'),
-('Furniture'),
-('Clothing'),
 ('Food'),
-('Books');
+('Drink'),
+('Medical'),
+('Cosmetic'),
+('Electronic');
 
 -- Insert data into Products
 INSERT INTO Products (name, category_id, supplier, measure_unit, image) VALUES
-('Laptop', 1, 'TechSupplier', 'pcs', 'laptop.png'),
-('Chair', 2, 'FurniSupplier', 'pcs', 'chair.png'),
-('T-shirt', 3, 'ClothSupplier', 'pcs', 'tshirt.png'),
-('Apple', 4, 'FoodSupplier', 'kg', 'apple.png'),
-('Novel', 5, 'BookSupplier', 'pcs', 'novel.png');
+('Rice', 1, 'ABC Supplier', 'kg', 'rice.jpg'),
+('Chicken', 1, 'XYZ Supplier', 'kg', 'chicken.jpg'),
+('Apple', 1, 'DEF Supplier', 'piece', 'apple.jpg'),
+('Coca-Cola', 2, 'Coca-Cola Company', 'can', 'cocacola.jpg'),
+('Orange Juice', 2, 'Juice Co.', 'bottle', 'orangejuice.jpg'),
+('Paracetamol', 3, 'Pharma Ltd.', 'tablet', 'paracetamol.jpg'),
+('Toothpaste', 4, 'Dental Care', 'tube', 'toothpaste.jpg'),
+('Shampoo', 4, 'Hair Products', 'bottle', 'shampoo.jpg'),
+('Laptop', 5, 'Tech Store', 'piece', 'laptop.jpg'),
+('Headphones', 5, 'Audio Inc.', 'piece', 'headphones.jpg');
 
 -- Insert data into Items
 INSERT INTO Items (product_id, expire_date) VALUES
-(1, '2025-01-01'),
-(2, NULL),
-(3, NULL),
-(4, '2024-06-30'),
-(5, NULL);
+(1, '2024-07-15'), -- Rice - hết hạn vào ngày 15/07/2024
+(1, '2024-08-01'), -- Rice - hết hạn vào ngày 01/08/2024
+(2, '2024-07-20'), -- Chicken - hết hạn vào ngày 20/07/2024
+(2, '2024-08-05'), -- Chicken - hết hạn vào ngày 05/08/2024
+(2, '2024-08-15'), -- Chicken - hết hạn vào ngày 15/08/2024
+(3, '2024-07-10'), -- Apple - hết hạn vào ngày 10/07/2024
+(3, '2024-07-18'), -- Apple - hết hạn vào ngày 18/07/2024
+(4, '2024-08-01'), -- Coca-Cola - hết hạn vào ngày 01/08/2024
+(4, '2024-08-10'), -- Coca-Cola - hết hạn vào ngày 10/08/2024
+(5, '2024-07-25'), -- Orange Juice - hết hạn vào ngày 25/07/2024
+(6, '2024-09-30'), -- Paracetamol - hết hạn vào ngày 30/09/2024
+(6, '2024-10-15'), -- Paracetamol - hết hạn vào ngày 15/10/2024
+(6, '2024-10-31'), -- Paracetamol - hết hạn vào ngày 31/10/2024
+(7, '2024-12-31'), -- Toothpaste - hết hạn vào ngày 31/12/2024
+(8, '2024-11-15'), -- Shampoo - hết hạn vào ngày 15/11/2024
+(8, '2024-11-30'), -- Shampoo - hết hạn vào ngày 30/11/2024
+(9, '2025-06-30'), -- Laptop - hết hạn vào ngày 30/06/2025
+(10, '2025-05-20'), -- Headphones - hết hạn vào ngày 20/05/2025
+(10, '2025-06-10'); -- Headphones - hết hạn vào ngày 10/06/2025
 
--- Insert data into WarehouseItems
-INSERT INTO WarehouseItems (zone_id, item_id, quantity) VALUES
-(1, 1, 50),
-(2, 2, 100),
-(3, 3, 200),
-(4, 4, 150),
-(5, 5, 300);
+-- Insert data into WarehouseItem
+INSERT INTO WarehouseItems (item_id, zone_id, quantity)
+SELECT id, FLOOR(RAND() * (SELECT COUNT(*) FROM WarehouseZones)) + 1, FLOOR(RAND() * 100) + 1
+FROM Items;
 
--- Insert data into OutboundTransactions
-INSERT INTO OutboundTransactions (date, maker_id, status, destination, external_destination) VALUES
-('2024-01-10', 1, 'Shipped', 2, NULL),
-('2024-02-15', 2, 'Shipped', 3, NULL),
-('2024-03-20', 3, 'Pending', NULL, 'Retail Store');
+INSERT INTO WarehouseItems (item_id, zone_id, quantity)
+SELECT id, FLOOR(RAND() * (SELECT COUNT(*) FROM WarehouseZones)) + 1, FLOOR(RAND() * 100) + 1
+FROM Items;
 
--- Insert data into OutboundTransactionDetails
-INSERT INTO OutboundTransactionDetails (transaction_id, item_id, quantity, zone_id) VALUES
-(1, 1, 10, 1),
-(1, 2, 5, 2),
-(2, 3, 20, 3),
-(2, 4, 10, 4),
-(3, 5, 15, 5);
+INSERT INTO WarehouseItems (item_id, zone_id, quantity)
+SELECT id, FLOOR(RAND() * (SELECT COUNT(*) FROM WarehouseZones)) + 1, FLOOR(RAND() * 100) + 1
+FROM Items;
+
+INSERT INTO WarehouseItems (item_id, zone_id, quantity)
+SELECT id, FLOOR(RAND() * (SELECT COUNT(*) FROM WarehouseZones)) + 1, FLOOR(RAND() * 100) + 1
+FROM Items;
+
+INSERT INTO WarehouseItems (item_id, zone_id, quantity)
+SELECT id, FLOOR(RAND() * (SELECT COUNT(*) FROM WarehouseZones)) + 1, FLOOR(RAND() * 100) + 1
+FROM Items;
+
 
 -- Insert data into InboundTransactions
-INSERT INTO InboundTransactions (date, maker_id, status, source, external_source) VALUES
-('2024-01-05', 2, 'Completed', NULL, 'Supplier A'),
-('2024-02-10', 3, 'Completed', NULL, 'Supplier B'),
-('2024-03-15', 4, 'Pending', NULL, 'Supplier C');
+INSERT INTO InboundTransactions (date, maker_id, status, source, external_source, warehouse_id) VALUES
+('2024-06-01', 1, 'pending', NULL, 'External Supplier A', 1),
+('2024-06-05', 2, 'processing', NULL, 'External Supplier B', 2),
+('2024-06-10', 3, 'done', NULL, 'External Supplier C', 3),
+('2024-06-15', 4, 'cancel', NULL, 'External Supplier D', 1);
 
 -- Insert data into InboundTransactionDetails
 INSERT INTO InboundTransactionDetails (transaction_id, item_id, quantity, zone_id) VALUES
-(1, 1, 20, 1),
-(1, 3, 50, 3),
-(2, 2, 30, 2),
+(1, 1, 50, 1),
+(1, 2, 30, 1),
+(2, 3, 20, 3),
 (2, 4, 40, 4),
-(3, 5, 60, 5);
+(3, 5, 60, 5),
+(3, 6, 70, 6),
+(4, 7, 80, 1),
+(4, 8, 90, 2);
+
+-- Insert data into OutboundTransactions
+INSERT INTO OutboundTransactions (date, maker_id, status, destination, external_destination, warehouse_id) VALUES
+('2024-06-01', 1, 'pending', 2, NULL, 1),
+('2024-06-05', 2, 'processing', 3, NULL, 2),
+('2024-06-10', 3, 'done', 1, NULL, 3),
+('2024-06-15', 4, 'cancel', 2, NULL, 1);
+
+-- Insert data into OutboundTransactionDetails
+INSERT INTO OutboundTransactionDetails (transaction_id, item_id, quantity, zone_id) VALUES
+(1, 1, 20, 1),
+(1, 2, 10, 1),
+(2, 3, 30, 3),
+(2, 4, 25, 4),
+(3, 5, 35, 5),
+(3, 6, 45, 6),
+(4, 7, 55, 1),
+(4, 8, 65, 2);
 
 -- Insert data into GoodsDisposal
 INSERT INTO GoodsDisposal (warehouse_id, maker_id, date, status) VALUES

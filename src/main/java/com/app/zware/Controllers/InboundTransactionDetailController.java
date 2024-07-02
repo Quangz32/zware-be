@@ -7,18 +7,12 @@ import com.app.zware.HttpEntities.CustomResponse;
 import com.app.zware.Service.InboundTransactionDetailService;
 import com.app.zware.Service.UserService;
 import com.app.zware.Validation.InboundTransactionDetailValidator;
+import com.app.zware.Validation.InboundTransactionValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/inbound_transaction_details")
@@ -32,6 +26,10 @@ public class InboundTransactionDetailController {
 
   @Autowired
   UserService userService;
+
+  @Autowired
+  InboundTransactionValidator inboundTransactionValidator;
+
 
   @GetMapping("")
   public ResponseEntity<?> index() {
@@ -160,6 +158,29 @@ public class InboundTransactionDetailController {
     // finally
     service.delete(id);
     customResponse.setAll(true, "Inbound transcation detail " + id + " has been deleted", null);
+    return new ResponseEntity<>(customResponse, HttpStatus.OK);
+  }
+
+  @GetMapping(params = "transaction_id")
+  public ResponseEntity<?> getByDisposal(
+          @RequestParam("transaction_id") Integer transactionId) {
+
+    //Response
+    CustomResponse customResponse = new CustomResponse();
+
+    //Authorization : ALL
+
+    //Validation
+    String checkMessage = inboundTransactionValidator.checkGet(transactionId);
+    if (!checkMessage.isEmpty()) {
+      customResponse.setAll(false, checkMessage, null);
+      return new ResponseEntity<>(customResponse, HttpStatus.OK);
+    }
+
+    //finally
+    customResponse.setAll(true, "Get Inbound Transaction Details success",
+            service.findByInboundTransactionId(transactionId));
+
     return new ResponseEntity<>(customResponse, HttpStatus.OK);
   }
 
