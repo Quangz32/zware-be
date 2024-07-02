@@ -175,10 +175,17 @@ public class UserController {
         }
 
 
-      if (newUser.getEmail() != null || newUser.getPassword() != null || newUser.getAvatar() != null) {
-        customResponse.setAll(false, "Cannot update email, password, or avatar", null);
-        return new ResponseEntity<>(customResponse, HttpStatus.FORBIDDEN);
-      }
+//      if (newUser.getEmail() != null || newUser.getPassword() != null || newUser.getAvatar() != null) {
+//        customResponse.setAll(false, "Cannot update email, password, or avatar", null);
+//        return new ResponseEntity<>(customResponse, HttpStatus.FORBIDDEN);
+//      }
+
+        newUser.setEmail(null);
+        newUser.setPassword(null);
+        newUser.setAvatar(null);
+        if(newUser.getRole()!=null&& newUser.getRole().equals("admin")){
+            newUser.setWarehouse_id(null); // if admin , no warehouse_id
+        }
 
 
 
@@ -187,6 +194,11 @@ public class UserController {
 
       //validate
         User mergedUser = userService.merge(userId, newUser, isAdmin);
+
+        if (mergedUser.getRole().equals("admin")) {
+            mergedUser.setWarehouse_id(null);
+        }
+
         String checkMessage = userValidator.checkPut(userId, mergedUser);
         if (!checkMessage.isEmpty()) {
             customResponse.setAll(false, checkMessage, null);
