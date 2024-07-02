@@ -65,4 +65,7 @@ public class OutboundTransactionService {
     return outboundTransactionRepository.existsByIdAndIsDeletedFalse(id);
   }
 
+  public List<OutboundTransaction> getByWarehouse(Integer warehouseId){
+    return outboundTransactionRepository.findByWarehouse(warehouseId);
+  }
 }

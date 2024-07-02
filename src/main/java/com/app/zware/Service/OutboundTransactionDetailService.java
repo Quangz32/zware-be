@@ -63,4 +63,8 @@ public class OutboundTransactionDetailService {
     Optional.ofNullable(request.getZone_id()).ifPresent(outboundTransactionDetail::setZone_id);
     return oldOutboundTransactionDetail;
   }
+
+  public List<OutboundTransactionDetail> getByOutboundTransaction(Integer transactionId){
+    return outboundTransactionDetailRepository.findByOutboundTransaction(transactionId);
+  }
 }

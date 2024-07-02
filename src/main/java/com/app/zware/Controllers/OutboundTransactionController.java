@@ -1,6 +1,5 @@
 package com.app.zware.Controllers;
 
-import com.app.zware.Entities.InboundTransaction;
 import com.app.zware.Entities.OutboundTransaction;
 import com.app.zware.Entities.OutboundTransactionDetail;
 import com.app.zware.Entities.User;
@@ -13,6 +12,7 @@ import com.app.zware.Service.OutboundTransactionService;
 import com.app.zware.Service.UserService;
 import com.app.zware.Service.WarehouseItemsService;
 import com.app.zware.Validation.OutBoundTransactionValidator;
+import com.app.zware.Validation.WarehouseValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.List;
@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -50,26 +51,28 @@ public class OutboundTransactionController {
   @Autowired
   OutboundTransactionDetailService outboundTransactionDetailService;
 
+  @Autowired
+  WarehouseValidator warehouseValidator;
+
   @PostMapping("/create")
   public ResponseEntity<?> createOutboundTransaction(
-     @RequestBody OutboundTransactionDTO transactionDTO,
+      @RequestBody OutboundTransactionDTO transactionDTO,
       HttpServletRequest request
-  ){
+  ) {
     CustomResponse customResponse = new CustomResponse();
 
     //authorization
     User requestMaker = userService.getRequestMaker(request);
     if (!requestMaker.getRole().equals("admin") &&
         !requestMaker.getWarehouse_id().equals(transactionDTO.getWarehouse_id())
-    ){
+    ) {
       customResponse.setAll(false, "You are not allowed", null);
       return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
     }
 
-
     //validation
     String message = outBoundTransactionValidator.checkCreate(transactionDTO);
-    if (!message.isEmpty()){
+    if (!message.isEmpty()) {
       customResponse.setAll(false, message, null);
       return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
     }
@@ -81,28 +84,28 @@ public class OutboundTransactionController {
     newTransaction.setDate(LocalDate.now());
     newTransaction.setMaker_id(requestMaker.getId());
     newTransaction.setStatus("pending");  //default when create
-    if (transactionDTO.getDestination() == null){
+    if (transactionDTO.getDestination() == null) {
       newTransaction.setExternal_destination(transactionDTO.getExternal_destination());
-    } else{
+    } else {
       newTransaction.setDestination(transactionDTO.getDestination());
     }
 
     OutboundTransaction savedTransaction = outboundTransactionService.save(newTransaction);
 
-    for (OutboundDetailDTO detail : transactionDTO.getDetails()){
+    for (OutboundDetailDTO detail : transactionDTO.getDetails()) {
       List<OutboundTransactionDetail> generatedDetailList =
           warehouseItemsService.createTransactionDetailsByProductAndQuantityAndWarehouse(
-          detail.getProduct_id(), detail.getQuantity(), transactionDTO.getWarehouse_id()
+              detail.getProduct_id(), detail.getQuantity(), transactionDTO.getWarehouse_id()
           );
 
-      for (OutboundTransactionDetail generatedDetail : generatedDetailList){
+      for (OutboundTransactionDetail generatedDetail : generatedDetailList) {
         generatedDetail.setTransaction_id(savedTransaction.getId());
         outboundTransactionDetailService.save(generatedDetail);
       }
       System.out.println(detail);
     }
 
-      customResponse.setAll(true, "Create outbound transaction succeess", null);
+    customResponse.setAll(true, "Create outbound transaction succeess", null);
     return ResponseEntity.ok(customResponse);
   }
 
@@ -219,25 +222,45 @@ public class OutboundTransactionController {
 
   }
 
-  @GetMapping("/{id}/details")
-  public ResponseEntity<?> getOutboundDetailsByOutboundId(@PathVariable("id") Integer id) {
+  @GetMapping(params = "warehouse_id")
+  public ResponseEntity<?> getByWarehouse(@RequestParam("warehouse_id") Integer warehouseId) {
     //response
     CustomResponse customResponse = new CustomResponse();
-
-    //Authorization : ALL
-
-    //validate
-    String message = outBoundTransactionValidator.checkGetDetail(id);
+    //Authorization: any authenticated user
+    //check validate
+    String message = warehouseValidator.checkGet(warehouseId);
     if (!message.isEmpty()) {
       customResponse.setAll(false, message, null);
       return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
-    } else {
-      List<OutboundTransactionDetail> outboundTransactionDetail =
-          outboundTransactionDetailRepository.findAllDetailsByOutboundTransactionIdAndIsDeletedFalse(
-              id);
-      customResponse.setAll(true, "Get all data details of OutboundTransaction with id : " +
-          id + " has been success", outboundTransactionDetail);
-      return new ResponseEntity<>(customResponse, HttpStatus.OK);
     }
+
+    //get outbound transaction
+    customResponse.setAll(true, "Get outbound transactions of warehouse " + warehouseId + " success",
+        outboundTransactionService.getByWarehouse(warehouseId));
+    return new ResponseEntity<>(customResponse, HttpStatus.OK);
   }
+
+//  @GetMapping("/{id}/details")
+//  public ResponseEntity<?> getOutboundDetailsByOutboundId(@PathVariable("id") Integer id) {
+//    //response
+//    CustomResponse customResponse = new CustomResponse();
+//
+//    //Authorization : ALL
+//
+//    //validate
+//    String message = outBoundTransactionValidator.checkGetDetail(id);
+//    if (!message.isEmpty()) {
+//      customResponse.setAll(false, message, null);
+//      return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+//    } else {
+//      List<OutboundTransactionDetail> outboundTransactionDetail =
+//          outboundTransactionDetailRepository.findAllDetailsByOutboundTransactionIdAndIsDeletedFalse(
+//              id);
+//      customResponse.setAll(true, "Get all data details of OutboundTransaction with id : " +
+//          id + " has been success", outboundTransactionDetail);
+//      return new ResponseEntity<>(customResponse, HttpStatus.OK);
+//    }
+//  }
+//
+
 }

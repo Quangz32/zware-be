@@ -4,7 +4,9 @@ import com.app.zware.Entities.User;
 import com.app.zware.Entities.WarehouseZone;
 import com.app.zware.HttpEntities.CustomResponse;
 import com.app.zware.Service.UserService;
+import com.app.zware.Service.WarehouseService;
 import com.app.zware.Service.WarehouseZoneService;
+import com.app.zware.Validation.WarehouseValidator;
 import com.app.zware.Validation.WarehouseZoneValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -32,6 +35,9 @@ public class WarehouseZoneController {
 
   @Autowired
   UserService userService;
+
+  @Autowired
+  WarehouseValidator warehouseValidator;
 
   @GetMapping("")
   public ResponseEntity<?> index() {
@@ -152,4 +158,25 @@ public class WarehouseZoneController {
     return new ResponseEntity<>(customResponse, HttpStatus.OK);
   }
 
+  @GetMapping(params = "warehouse_id")
+  public ResponseEntity<?> getByWarehouse(@RequestParam("warehouse_id") Integer warehouseId){
+    //response
+    CustomResponse customResponse = new CustomResponse();
+
+    //Authorization : All
+
+    //Validation
+
+
+    String checkMessage = warehouseValidator.checkGet(warehouseId);
+    if (!checkMessage.isEmpty()) {
+      customResponse.setAll(false, checkMessage, null);
+      return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    //Update
+    List<WarehouseZone> zones = warehouseZoneService.getByWarehouse(warehouseId);
+    customResponse.setAll(true, "Update warehouse zone success", zones);
+    return new ResponseEntity<>(customResponse, HttpStatus.OK);
+  }
 }
