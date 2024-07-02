@@ -21,7 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/warehouseitems")
+@RequestMapping("/api/warehouse_items")
 public class WarehouseItemsController {
 
   @Autowired
