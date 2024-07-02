@@ -162,7 +162,7 @@ public class OutBoundTransactionValidator {
 
   public String checkGet(Integer id) {
     if (!checkId(id)) {
-      return "Not found ID";
+      return "Outbound transaction Id is not valid";
     } else {
       return "";
     }

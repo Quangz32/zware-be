@@ -9,9 +9,8 @@ public interface OutboundTransactionDetailRepository extends
     JpaRepository<OutboundTransactionDetail, Integer> {
 
   @Query(value =
-      "SELECT otd.id, otd.transaction_id, otd.item_id, otd.quantity, otd.zone_id FROM outboundtransactiondetails otd JOIN"
-          +
-          " outboundtransactions ot ON otd.transaction_id = ot.id WHERE ot.isdeleted = false AND ot.id = ?1", nativeQuery = true)
-  List<OutboundTransactionDetail> findAllDetailsByOutboundTransactionIdAndIsDeletedFalse(
-      Integer outboundTransactionId);
+      "SELECT * from outboundtransactiondetails\n" +
+      "WHERE transaction_id = ?1",
+      nativeQuery = true)
+  List<OutboundTransactionDetail> findByOutboundTransaction(Integer transactionId);
 }

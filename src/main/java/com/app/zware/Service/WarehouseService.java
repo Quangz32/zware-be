@@ -90,4 +90,9 @@ public class WarehouseService {
     return outboundTransactionRepository.getOutboundTransactionById(warehouseId);
   }
 
+
+  public List<InboundTransaction> getInboundByWarehouseId(Integer warehouseId){
+    return inboundTransactionRepository.getInboundTransactionById(warehouseId);
+  }
+
 }
