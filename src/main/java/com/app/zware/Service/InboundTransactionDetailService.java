@@ -59,4 +59,11 @@ public class InboundTransactionDetailService {
   public void delete(Integer id) {
     detailRepository.deleteById(id);
   }
+
+  public List<InboundTransactionDetail> findByInboundTransactionId (Integer transactionId){
+    return detailRepository.findByInboundTransactionId(transactionId);
+  }
 }
+
+
+

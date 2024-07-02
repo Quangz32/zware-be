@@ -85,7 +85,14 @@ public class WarehouseService {
     return wareHouseRespository.existByIdAndIsDeletedFalse(warehouseId);
   }
 
+
+  public List<OutboundTransaction> getOutboundByWarehouseId(Integer warehouseId){
+    return outboundTransactionRepository.getOutboundTransactionById(warehouseId);
+  }
+
+
   public List<InboundTransaction> getInboundByWarehouseId(Integer warehouseId){
     return inboundTransactionRepository.getInboundTransactionById(warehouseId);
   }
+
 }

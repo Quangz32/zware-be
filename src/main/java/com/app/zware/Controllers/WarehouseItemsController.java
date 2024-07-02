@@ -9,20 +9,16 @@ import com.app.zware.Repositories.WarehouseZoneRespository;
 import com.app.zware.Service.UserService;
 import com.app.zware.Service.WarehouseItemsService;
 import com.app.zware.Service.WarehouseZoneService;
+import com.app.zware.Validation.ProductValidator;
 import com.app.zware.Validation.WarehouseItemValidator;
+import com.app.zware.Validation.WarehouseValidator;
+import com.app.zware.Validation.WarehouseZoneValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/warehouseitems")
@@ -42,6 +38,15 @@ public class WarehouseItemsController {
 
   @Autowired
   WarehouseZoneService warehouseZoneService;
+
+  @Autowired
+  WarehouseZoneValidator warehouseZoneValidator;
+
+  @Autowired
+  WarehouseValidator warehouseValidator;
+
+  @Autowired
+  ProductValidator productValidator;
 
   @GetMapping("")
   public ResponseEntity<?> index() {
@@ -193,5 +198,102 @@ public class WarehouseItemsController {
 
 
   }
+  @GetMapping(params = "zone_id")
+  public ResponseEntity<?> getByZone(
+          @RequestParam("zone_id") Integer zoneId) {
+
+    //Response
+    CustomResponse customResponse = new CustomResponse();
+
+    //Authorization : ALL
+
+    //Validation
+    String checkMessage = warehouseZoneValidator.checkGet(zoneId);
+    if (!checkMessage.isEmpty()) {
+      customResponse.setAll(false, checkMessage, null);
+      return new ResponseEntity<>(customResponse, HttpStatus.OK);
+    }
+
+    //finally
+    customResponse.setAll(true, "Get Warehouse Item By Zone success",warehouseItemsService.findByZoneId(zoneId));
+
+    return new ResponseEntity<>(customResponse, HttpStatus.OK);
+  }
+
+
+  @GetMapping(params = "warehouse_id")
+  public ResponseEntity<?> getByWarehouse(
+          @RequestParam("warehouse_id") Integer warehouseId) {
+
+    //Response
+    CustomResponse customResponse = new CustomResponse();
+
+    //Authorization : ALL
+
+    //Validation
+    String checkMessage = warehouseValidator.checkGet(warehouseId);
+    if (!checkMessage.isEmpty()) {
+      customResponse.setAll(false, checkMessage, null);
+      return new ResponseEntity<>(customResponse, HttpStatus.OK);
+    }
+
+    //finally
+    customResponse.setAll(true, "Get Warehouse Item By Warehouse success",warehouseItemsService.findByWarehouseId(warehouseId));
+
+    return new ResponseEntity<>(customResponse, HttpStatus.OK);
+  }
+
+  //
+  @GetMapping(params = {"product_id", "warehouse_id"})
+  public ResponseEntity<?> getByProductAndWarehouse(
+          @RequestParam("product_id") Integer productId,
+          @RequestParam("warehouse_id") Integer warehouseId) {
+
+    //Response
+    CustomResponse customResponse = new CustomResponse();
+
+    //Authorization : ALL
+
+    //Validation
+
+    String checkWarehouseId = warehouseValidator.checkGet(warehouseId);
+    String checkProductId = productValidator.checkGet(productId);
+     if (!checkWarehouseId.isEmpty()) {
+      customResponse.setAll(false, checkWarehouseId, null);
+      return new ResponseEntity<>(customResponse, HttpStatus.OK);
+    }
+
+
+
+    //finally
+    customResponse.setAll(true, "Get Warehouse Item By Warehouse and Product success",warehouseItemsService.findByProductAndWarehouse(productId,warehouseId));
+
+    return new ResponseEntity<>(customResponse, HttpStatus.OK);
+  }
+
+  @GetMapping(params = "product_id")
+  public ResponseEntity<?> getByProduct(
+          @RequestParam("product_id") Integer productId) {
+
+    //Response
+    CustomResponse customResponse = new CustomResponse();
+
+    //Authorization : ALL
+
+    //Validation
+    String checkMessage = productValidator.checkGet(productId);
+    if (!checkMessage.isEmpty()) {
+      customResponse.setAll(false, checkMessage, null);
+      return new ResponseEntity<>(customResponse, HttpStatus.OK);
+    }
+
+    //finally
+    customResponse.setAll(true, "Get Warehouse Item By Product success",warehouseItemsService.findByProductId(productId));
+
+    return new ResponseEntity<>(customResponse, HttpStatus.OK);
+  }
+
+
+
 
 }

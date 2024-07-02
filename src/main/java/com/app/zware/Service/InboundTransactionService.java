@@ -69,4 +69,8 @@ public class InboundTransactionService {
   public List<InboundTransactionDetail> getInboundDetailsByTransactionId(Integer transactionId) {
     return inboundTransactionDetailRepository.findByInboundTransactionId(transactionId);
   }
+
+  public List<InboundTransaction> getInboundByWarehouseId(Integer warehouseId){
+    return repository.getInboundTransactionById(warehouseId);
+  }
 }

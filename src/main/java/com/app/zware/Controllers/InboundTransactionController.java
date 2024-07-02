@@ -15,6 +15,7 @@ import com.app.zware.Service.ItemService;
 import com.app.zware.Service.UserService;
 import com.app.zware.Service.WarehouseItemsService;
 import com.app.zware.Validation.InboundTransactionValidator;
+import com.app.zware.Validation.WarehouseValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -22,14 +23,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/inbound_transactions")
@@ -52,6 +46,9 @@ public class InboundTransactionController {
 
   @Autowired
   WarehouseItemsService warehouseItemsService;
+
+  @Autowired
+  WarehouseValidator warehouseValidator;
 
   @PostMapping("/create")
   public ResponseEntity<?> createInboundTransaction(
@@ -249,8 +246,31 @@ public class InboundTransactionController {
     return new ResponseEntity<>(customResponse, HttpStatus.OK);
   }
 
-  @GetMapping("/{id}/details")
-  public ResponseEntity<?> getInboundTransactionDetails(@PathVariable("id") Integer id) {
+//  @GetMapping("/{id}/details")
+//  public ResponseEntity<?> getInboundTransactionDetails(@PathVariable("id") Integer id) {
+//
+//    //Response
+//    CustomResponse customResponse = new CustomResponse();
+//
+//    //Authorization : ALL
+//
+//    //Validation
+//    String checkMessage = validator.checkGet(id);
+//    if (!checkMessage.isEmpty()) {
+//      customResponse.setAll(false, checkMessage, null);
+//      return new ResponseEntity<>(customResponse, HttpStatus.OK);
+//    }
+//
+//    //finally
+//    customResponse.setAll(true, "Get Inbound Transaction Details success",
+//        service.getInboundDetailsByTransactionId(id));
+//    return new ResponseEntity<>(customResponse, HttpStatus.OK);
+//
+//  }
+
+  @GetMapping(params = "warehouse_id")
+  public ResponseEntity<?> getByWarehouse(
+          @RequestParam("warehouse_id") Integer warehouseId) {
 
     //Response
     CustomResponse customResponse = new CustomResponse();
@@ -258,16 +278,17 @@ public class InboundTransactionController {
     //Authorization : ALL
 
     //Validation
-    String checkMessage = validator.checkGet(id);
+    String checkMessage = warehouseValidator.checkGet(warehouseId);
     if (!checkMessage.isEmpty()) {
       customResponse.setAll(false, checkMessage, null);
       return new ResponseEntity<>(customResponse, HttpStatus.OK);
     }
 
     //finally
-    customResponse.setAll(true, "Get Inbound Transaction Details success",
-        service.getInboundDetailsByTransactionId(id));
-    return new ResponseEntity<>(customResponse, HttpStatus.OK);
+    customResponse.setAll(true, "Get Inbound Transaction success",
+            service.getInboundByWarehouseId(warehouseId));
 
+    return new ResponseEntity<>(customResponse, HttpStatus.OK);
   }
+
 }
