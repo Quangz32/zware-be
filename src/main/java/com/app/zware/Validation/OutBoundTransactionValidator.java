@@ -8,6 +8,7 @@ import com.app.zware.Repositories.OutboundTransactionDetailRepository;
 import com.app.zware.Repositories.OutboundTransactionRepository;
 import com.app.zware.Repositories.UserRepository;
 import com.app.zware.Repositories.WarehouseRespository;
+import com.app.zware.Service.OutboundTransactionService;
 import com.app.zware.Service.ProductService;
 import com.app.zware.Service.WarehouseItemsService;
 import com.app.zware.Service.WarehouseService;
@@ -30,6 +31,9 @@ public class OutBoundTransactionValidator {
 
   @Autowired
   OutboundTransactionDetailRepository outboundTransactionDetailRepository;
+
+  @Autowired
+  OutboundTransactionService outboundTransactionService;
 
   @Autowired
   WarehouseService warehouseService;
@@ -148,15 +152,42 @@ public class OutBoundTransactionValidator {
     return "";
   }
 
-  public String checkPut(Integer id, OutboundTransaction outboundTransaction) {
-    if (id == null || !outboundTransactionRepository.existsById(id)) {
+  public String checkPut(Integer id, OutboundTransaction transaction) {
+    if (id == null || !outboundTransactionService.existById(id)) {
       return "Not found OutboundTransactionID";
     }
-    List<String> statusList = Arrays.asList("Pending", "Processing", "Done", "Cancel");
-    if (!statusList.contains(outboundTransaction.getStatus())) {
-      return "Status is not valid";
+    OutboundTransaction oldTransaction = outboundTransactionService.getOutboundTransactionById(id);
+    System.out.println(oldTransaction);
+    String oldStatus = oldTransaction.getStatus();
+    String newStatus = transaction.getStatus();
+
+    // Chỉ cho phép thay đổi trạng thái theo các quy tắc
+    if (oldStatus.equals("cancel") || oldStatus.equals("done")) {
+      return "Outbound Transactions has been " + oldStatus+", You are not allowed to change.";
     }
-    return checkPost(outboundTransaction);
+    if(transaction.getDate() != null && !transaction.getDate().equals(oldTransaction.getDate())) {
+      return "You are only allowed to change status.";
+    }
+    if(transaction.getDestination() != null && !transaction.getDestination().equals(oldTransaction.getDestination())) {
+      return "You are only allowed to change status.";
+    }
+    if(transaction.getExternal_destination() != null && !transaction.getExternal_destination().equals(oldTransaction.getExternal_destination())) {
+      return "You are only allowed to change status.";
+    }
+    if(transaction.getMaker_id() != null && !transaction.getMaker_id().equals(oldTransaction.getMaker_id())) {
+      return "You are only allowed to change status.";
+    }
+    if(transaction.getWarehouse_id() != null && !transaction.getWarehouse_id().equals(oldTransaction.getWarehouse_id())) {
+      return "You are only allowed to change status.";
+    }
+    if (oldStatus.equals("pending") && !(newStatus.equals("processing") || newStatus.equals("cancel"))) {
+      return "You can only change status from pending to processing or cancel.";
+    }
+    if (oldStatus.equals("processing") && !(newStatus.equals("done") || newStatus.equals("cancel"))) {
+      return "You can only change status from processing to done or cancel.";
+    }
+
+    return "";
 
   }
 

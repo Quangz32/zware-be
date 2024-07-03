@@ -191,7 +191,7 @@ public class OutboundTransactionController {
     }
   }
 
-  @PutMapping("/{id}")
+  @PutMapping("/{id}/changeStatus")
   public ResponseEntity<?> update(@PathVariable("id") Integer id,
       @RequestBody OutboundTransaction request,
       HttpServletRequest userRequest) {
@@ -204,8 +204,6 @@ public class OutboundTransactionController {
       return new ResponseEntity<>(customResponse, HttpStatus.UNAUTHORIZED);
     }
 
-    //merge info
-    OutboundTransaction mergedOutboundTransaction = outboundTransactionService.merge(id, request);
 
     //Validate
     String message = outBoundTransactionValidator.checkPut(id, request);
@@ -213,11 +211,11 @@ public class OutboundTransactionController {
       customResponse.setAll(false, message, null);
       return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
     }
-
+    //merge info
+    OutboundTransaction mergedOutboundTransaction = outboundTransactionService.merge(id, request);
     // update
-    OutboundTransaction updatedOutboundTransaction = outboundTransactionService.update(
-        mergedOutboundTransaction);
-    customResponse.setAll(true, "OutboundTransaction has been updated", updatedOutboundTransaction);
+    String updatedOutboundTransaction = outboundTransactionService.update(id, mergedOutboundTransaction);
+    customResponse.setAll(true, updatedOutboundTransaction, null);
     return new ResponseEntity<>(customResponse, HttpStatus.OK);
 
   }

@@ -56,11 +56,13 @@ public interface WarehouseItemsRepository extends JpaRepository<WarehouseItems, 
   List<WarehouseItems> findByItemId(Integer id);
 
   @Query(value = "select wi.* from \n"
-      + "WarehouseItems wi \n"
-      + "JOIN Items i on i.id = wi.item_id \n"
-      + "Join WarehouseZones wz on wz.id = wi.zone_id \n"
-      + "where wz.warehouse_id = ?2 and i.product_id=?1\n"
-      + "ORDER BY i.expire_date, wi.quantity DESC;", nativeQuery = true)
+          + "WarehouseItems wi \n"
+          + "JOIN Items i on i.id = wi.item_id \n"
+          + "Join WarehouseZones wz on wz.id = wi.zone_id \n"
+          + "where wz.warehouse_id = ?2 and i.product_id=?1\n"
+          + "AND wi.isdeleted = false AND wi.quantity > 0\n"
+          + "AND (i.expire_date IS NULL OR i.expire_date > CURDATE())\n"
+          + "ORDER BY i.expire_date ASC, wi.quantity DESC;", nativeQuery = true)
   List<WarehouseItems> findByProductAndWarehouse(Integer productId, Integer warehouseId);
 
   @Query(value = "select * from warehouseitems where zone_id=?1 and isdeleted=false", nativeQuery = true)
@@ -81,5 +83,23 @@ public interface WarehouseItemsRepository extends JpaRepository<WarehouseItems, 
       + "LIMIT 1", nativeQuery = true)
   WarehouseItems findByZoneAndProductAndDate(Integer zoneId, Integer productId, LocalDate date);
 
-
+  @Query(value = "WITH TotalQuantity AS (\n" +
+          "    SELECT SUM(wi.quantity) AS totalQuantity\n" +
+          "    FROM WarehouseItems wi\n" +
+          "    INNER JOIN Items i ON wi.item_id = i.id\n" +
+          "    INNER JOIN WarehouseZones wz ON wi.zone_id = wz.id\n" +
+          "    WHERE wz.warehouse_id = ?1 AND i.product_id = ?2\n" +
+          "    AND (i.expire_date IS NULL OR i.expire_date > CURDATE())"+
+          "),\n" +
+          "ProcessingQuantity AS (\n" +
+          "    SELECT COALESCE(SUM(otd.quantity), 0) AS Processing\n" +
+          "    FROM OutboundTransactionDetails otd\n" +
+          "    INNER JOIN OutboundTransactions ot ON otd.transaction_id = ot.id\n" +
+          "    INNER JOIN Items i ON otd.item_id = i.id\n" +
+          "    WHERE (ot.status = 'pending' OR ot.status = 'processing')\n" +
+          "    AND ot.warehouse_id = ?1 AND i.product_id = ?2\n" +
+          ")\n" +
+          "SELECT tq.totalQuantity - pq.Processing AS AvailableQuantity\n" +
+          "FROM TotalQuantity tq, ProcessingQuantity pq;", nativeQuery = true)
+  Integer sumQuantityByProductIdAndWarehouseId(Integer warehouseId,Integer productId);
 }

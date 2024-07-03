@@ -83,20 +83,20 @@ public class WarehouseItemsService {
     return warehouseItemsRepository.findByProductAndWarehouse(productId, warehouseId);
   }
 
-  public int getTotalQuantityByProductIdAndWarehouseId(Integer productId, Integer warehouseId) {
-    List<WarehouseItems> warehouseItems = this.getByProductAndWarehouse(productId,
-        warehouseId);
+  public Integer getTotalQuantityByProductIdAndWarehouseId(Integer productId, Integer warehouseId) {
+//    List<WarehouseItems> warehouseItems = this.getByProductAndWarehouse(productId,
+//        warehouseId);
 
 //    System.out.println(warehouseItems.toString());
-    if (warehouseItems.isEmpty()) {
-      return 0;
-    }
-
-    int total = 0;
-    for (WarehouseItems wi : warehouseItems) {
-      total += wi.getQuantity();
-    }
-    return total;
+//    if (warehouseItems.isEmpty()) {
+//      return 0;
+//    }
+//
+//    int total = 0;
+//    for (WarehouseItems wi : warehouseItems) {
+//      total += wi.getQuantity();
+//    }
+    return warehouseItemsRepository.sumQuantityByProductIdAndWarehouseId(warehouseId, productId);
   }
 
   public List<OutboundTransactionDetail> createTransactionDetailsByProductAndQuantityAndWarehouse(

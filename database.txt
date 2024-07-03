@@ -147,10 +147,12 @@ CREATE TABLE GoodsDisposal (
 CREATE TABLE DisposedGoods (
     id INT AUTO_INCREMENT PRIMARY KEY,
     disposal_id INT,
+    zone_id INT,
     item_id INT,
     quantity INT,
     reason VARCHAR(255),
     FOREIGN KEY (disposal_id) REFERENCES GoodsDisposal(id) ON DELETE SET NULL,
+    FOREIGN KEY (zone_id) REFERENCES WarehouseZones(id) ON DELETE SET NULL,
     FOREIGN KEY (item_id) REFERENCES Items(id) ON DELETE SET NULL
 );
 
@@ -349,17 +351,3 @@ INSERT INTO OutboundTransactionDetails (transaction_id, item_id, quantity, zone_
 (3, 6, 45, 6),
 (4, 7, 55, 1),
 (4, 8, 65, 2);
-
--- Insert data into GoodsDisposal
-INSERT INTO GoodsDisposal (warehouse_id, maker_id, date, status) VALUES
-(1, 2, '2024-01-25', 'Disposed'),
-(2, 3, '2024-02-28', 'Disposed'),
-(3, 4, '2024-03-30', 'Pending');
-
--- Insert data into DisposedGoods
-INSERT INTO DisposedGoods (disposal_id, item_id, quantity, reason) VALUES
-(1, 1, 5, 'Damaged'),
-(1, 2, 10, 'Expired'),
-(2, 3, 15, 'Damaged'),
-(2, 4, 20, 'Expired'),
-(3, 5, 25, 'Damaged');

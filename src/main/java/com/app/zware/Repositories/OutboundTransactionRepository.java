@@ -12,7 +12,7 @@ public interface OutboundTransactionRepository extends JpaRepository<OutboundTra
   List<OutboundTransaction> findAll();
 
   @Query(value = "SELECT * FROM outboundtransactions i WHERE i.id = ?1 AND i.isdeleted = 0", nativeQuery = true)
-  Optional<OutboundTransaction> findById(Integer id);
+  OutboundTransaction findByOutboundId(Integer id);
 
   @Query(value = "Select * from outboundtransactions where warehouse_id=?1 AND isdeleted=false", nativeQuery = true)
   List<OutboundTransaction> findByWarehouse(Integer warehouseId);
