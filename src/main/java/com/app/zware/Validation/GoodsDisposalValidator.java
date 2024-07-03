@@ -1,9 +1,18 @@
 package com.app.zware.Validation;
 
 import com.app.zware.Entities.GoodsDisposal;
+import com.app.zware.Entities.WarehouseItems;
+import com.app.zware.HttpEntities.DisposedGoodsDTO;
+import com.app.zware.HttpEntities.GoodsDisposalDTO;
 import com.app.zware.Repositories.GoodsDisposalRepository;
 import com.app.zware.Repositories.UserRepository;
 import com.app.zware.Repositories.WarehouseRespository;
+import com.app.zware.Service.ProductService;
+import com.app.zware.Service.WarehouseItemsService;
+import com.app.zware.Service.WarehouseService;
+import com.app.zware.Service.WarehouseZoneService;
+import java.util.HashSet;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -19,6 +28,92 @@ public class GoodsDisposalValidator {
   @Autowired
   UserRepository userRepository;
 
+  @Autowired
+  WarehouseService warehouseService;
+
+  @Autowired
+  ProductService productService;
+
+  @Autowired
+  WarehouseItemsService warehouseItemsService;
+
+  @Autowired
+  WarehouseZoneService zoneService;
+
+  public String checkCreate(GoodsDisposalDTO disposalDTO) {
+    //check required
+    if (disposalDTO.getWarehouse_id() == null) {
+      return "Warehouse Id is required";
+    }
+
+    if (disposalDTO.getDetails() == null || disposalDTO.getDetails().isEmpty()) {
+      return "Details is required";
+    }
+
+    //check condition
+    if (!warehouseService.existById(disposalDTO.getWarehouse_id())) {
+      return "Warehouse Id is not valid";
+    }
+
+    Set<DisposedGoodsDTO> detailSet = new HashSet<>();
+    for (DisposedGoodsDTO detail : disposalDTO.getDetails()) {
+      if (!detailSet.add(detail)){
+        return "Details cannot be duplicate in Zone id, Product id and Expire date";
+      }
+      String checkMessage = this.checkCreateDetail(detail, disposalDTO);
+      if (!checkMessage.isEmpty()) {
+        return checkMessage;
+      }
+    }
+
+    return "";
+  }
+
+  public String checkCreateDetail(DisposedGoodsDTO detail, GoodsDisposalDTO disposalDTO) {
+    //check require
+    if (detail.getZone_id() == null || detail.getProduct_id() == null ||
+        detail.getExpire_date() == null || detail.getQuantity() == null ||
+        detail.getReason() == null || detail.getReason().isEmpty()) {
+
+      return "Zone Id, Product Id, Expire date, Quantity and Reason is required in each detail";
+    }
+
+    //check condition
+    if (!zoneService.existById(detail.getZone_id())) {
+      return "Zone id is not valid";
+    }
+
+    if (!warehouseService.getByZone(detail.getZone_id()).getId()
+        .equals(disposalDTO.getWarehouse_id())) {
+      return "Zone id [" + detail.getZone_id() + "] is not belong to warehouse ["
+          + disposalDTO.getWarehouse_id() + "]";
+    }
+
+    if (!productService.existById(detail.getProduct_id())) {
+      return "Product Id is not valid";
+    }
+
+    if ((int) detail.getQuantity() <=0 ){
+      return "Quantity must be more then 0";
+    }
+
+    WarehouseItems wi = warehouseItemsService.findByZoneAndProductAndDate(
+        detail.getZone_id(), detail.getProduct_id(), detail.getExpire_date()
+    );
+
+    if (wi == null) { //not found warehouseItem
+      return "There are no product [" + detail.getProduct_id() + "] in zone [" + detail.getZone_id()
+          + "] with expire date " + detail.getExpire_date();
+    }
+
+    if (wi.getQuantity() < detail.getQuantity()) {  //not enough quantity
+      return "Quantity of product [" + detail.getProduct_id() + "] with the expire date "
+          + detail.getExpire_date() + " in zone [" + detail.getZone_id()
+          + "] is not enough!";
+    }
+
+    return "";
+  }
 
   public String checkPost(GoodsDisposal goodsDisposal) {
     if (goodsDisposal.getStatus().isEmpty()) {

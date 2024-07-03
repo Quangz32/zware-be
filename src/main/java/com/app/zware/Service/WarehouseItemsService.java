@@ -1,12 +1,11 @@
 package com.app.zware.Service;
 
-import com.app.zware.Entities.InboundTransactionDetail;
+import com.app.zware.Entities.Item;
 import com.app.zware.Entities.OutboundTransactionDetail;
 import com.app.zware.Entities.WarehouseItems;
 import com.app.zware.Repositories.WarehouseItemsRepository;
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,7 +101,7 @@ public class WarehouseItemsService {
 
   public List<OutboundTransactionDetail> createTransactionDetailsByProductAndQuantityAndWarehouse(
       Integer productId, Integer quantity, Integer warehouseId
-  ){
+  ) {
 
     //this list is sorted by expire_date and quantity
     List<WarehouseItems> warehouseItemList = this.getByProductAndWarehouse(productId, warehouseId);
@@ -112,12 +111,12 @@ public class WarehouseItemsService {
 
     int leftQuantity = quantity;  //Số lg còn lại cần phải lấy
 
-    for (WarehouseItems warehouseItem : warehouseItemList ){
+    for (WarehouseItems warehouseItem : warehouseItemList) {
       OutboundTransactionDetail newDetail = new OutboundTransactionDetail();
       newDetail.setItem_id(warehouseItem.getItem_id());
       newDetail.setZone_id(warehouseItem.getZone_id());
 
-      if (warehouseItem.getQuantity() >= leftQuantity){
+      if (warehouseItem.getQuantity() >= leftQuantity) {
         newDetail.setQuantity(leftQuantity);
         detailList.add(newDetail);
         break;
@@ -135,19 +134,62 @@ public class WarehouseItemsService {
     return detailList;
   }
 
-  public List<WarehouseItems> findByZoneId(Integer zoneId){
+  public List<WarehouseItems> findByZoneId(Integer zoneId) {
     return warehouseItemsRepository.findByZoneId(zoneId);
   }
 
-  public List<WarehouseItems> findByWarehouseId(Integer warehouseId){
+  public List<WarehouseItems> findByWarehouseId(Integer warehouseId) {
     return warehouseItemsRepository.findWarehouseItemByWarehouseId(warehouseId);
   }
 
-  public List<WarehouseItems> findByProductAndWarehouse(Integer productId, Integer warehouseId){
-    return warehouseItemsRepository.findByProductAndWarehouse(productId,warehouseId);
+  public List<WarehouseItems> findByProductAndWarehouse(Integer productId, Integer warehouseId) {
+    return warehouseItemsRepository.findByProductAndWarehouse(productId, warehouseId);
   }
 
-  public List<WarehouseItems> findByProductId(Integer productId){
+  public List<WarehouseItems> findByProductId(Integer productId) {
     return warehouseItemsRepository.findByProductId(productId);
   }
+
+  public WarehouseItems findByZoneAndProductAndDate(
+      Integer zoneId, Integer productId, LocalDate date) {
+    return warehouseItemsRepository.findByZoneAndProductAndDate(zoneId, productId, date);
+  }
+
+  public WarehouseItems addToZone(
+      Integer zoneId, Integer productId, LocalDate expireDate, Integer quantity) {
+    WarehouseItems wi = this.findByZoneAndProductAndDate(zoneId, productId, expireDate);
+
+    if (wi == null) {
+      Item item = itemService.getOrCreateByProductAndDate(productId, expireDate);
+      WarehouseItems new_wi = new WarehouseItems();
+      new_wi.setZone_id(zoneId);
+      new_wi.setItem_id(item.getId());
+      new_wi.setQuantity(quantity);
+      return warehouseItemsRepository.save(new_wi);  //DONE
+    }
+
+    wi.setQuantity(wi.getQuantity() + quantity);
+    return warehouseItemsRepository.save(wi);
+  }
+
+
+  public WarehouseItems removeFromZone(
+      Integer zoneId, Integer productId, LocalDate expireDate, Integer quantity) {
+    WarehouseItems wi = this.findByZoneAndProductAndDate(zoneId, productId, expireDate);
+    if (wi == null) {
+      return null;  //Nothing to remove
+    }
+
+    wi.setQuantity(wi.getQuantity() - quantity);
+    if (wi.getQuantity() < 0) {
+      return null; //Not valid
+    }
+    if (wi.getQuantity() == 0) {
+      warehouseItemsRepository.delete(wi);
+      return null;
+    } else {
+      return warehouseItemsRepository.save(wi);
+    }
+  }
+
 }
