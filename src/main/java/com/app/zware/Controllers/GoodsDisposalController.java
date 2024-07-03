@@ -236,7 +236,8 @@ public class GoodsDisposalController {
           newDetail.getQuantity());
     }
 
-    return ResponseEntity.ok(disposalDTO.toString());
+    customResponse.setAll(true, "Create goods disposal success", savedDisposal);
+    return ResponseEntity.ok(customResponse);
   }
 
 }
