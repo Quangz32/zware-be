@@ -52,14 +52,19 @@ public class OutboundTransactionService {
   }
 
   public String update(Integer id, OutboundTransaction outboundTransaction) {
-    if (outboundTransaction.getStatus().equals("done")) {
+    if (outboundTransaction.getStatus().equals("completed")) {
       //set quantity in warehouseItem
       this.updateWarehouseItemsQuantities(id);
-      return "The outbound transactions was successful(Quantity of Products has been updated)";
+      return "The outbound transaction was completed(The quantity of product in warehouse has been updated)";
     }
     //status pending -> processing
+    if(outboundTransaction.getStatus().equals("processing")){
+      outboundTransactionRepository.save(outboundTransaction);
+      return "Status has been updated( Processing ). Products are being prepared";
+    }
+    // status " cancel "
     outboundTransactionRepository.save(outboundTransaction);
-    return "Status has been updated. Products are being prepared";
+    return "Transaction has been cancelled";
   }
 
   public OutboundTransaction merge(Integer id, OutboundTransaction request) {

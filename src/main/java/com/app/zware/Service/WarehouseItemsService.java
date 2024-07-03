@@ -96,7 +96,7 @@ public class WarehouseItemsService {
 //    for (WarehouseItems wi : warehouseItems) {
 //      total += wi.getQuantity();
 //    }
-    return warehouseItemsRepository.sumQuantityByProductIdAndWarehouseId(warehouseId, productId);
+    return warehouseItemsRepository.totalQuantityProductInWarehouse(warehouseId, productId);
   }
 
   public List<OutboundTransactionDetail> createTransactionDetailsByProductAndQuantityAndWarehouse(

@@ -197,16 +197,26 @@ public class OutboundTransactionController {
       HttpServletRequest userRequest) {
     //response
     CustomResponse customResponse = new CustomResponse();
-    //Validation: Admin or Transaction's maker
+
+    //get warehouse_id in transaction to check Authorization
+    //Validate checkGet
+    String checkedMessage = outBoundTransactionValidator.checkGet(id);
+    if (!checkedMessage.isEmpty()) {
+      customResponse.setAll(false, checkedMessage, null);
+      return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+    }
+    Integer warehouseId = outboundTransactionService.getOutboundTransactionById(id).getWarehouse_id();
+
+    //Validation: Admin or manager warehouse
     User user = userService.getRequestMaker(userRequest);
-    if (!user.getRole().equals("admin") && !user.getId().equals(request.getMaker_id())) {
+    if (!user.getRole().equals("admin") && !user.getWarehouse_id().equals(warehouseId)) {
       customResponse.setAll(false, "You are not allowed", null);
       return new ResponseEntity<>(customResponse, HttpStatus.UNAUTHORIZED);
     }
 
 
-    //Validate
-    String message = outBoundTransactionValidator.checkPut(id, request);
+    //Validate check change status
+    String message = outBoundTransactionValidator.checkChangeStatus(id, request);
     if (!message.isEmpty()) {
       customResponse.setAll(false, message, null);
       return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);

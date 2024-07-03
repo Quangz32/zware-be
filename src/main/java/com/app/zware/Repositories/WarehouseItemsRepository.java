@@ -101,5 +101,5 @@ public interface WarehouseItemsRepository extends JpaRepository<WarehouseItems, 
           ")\n" +
           "SELECT tq.totalQuantity - pq.Processing AS AvailableQuantity\n" +
           "FROM TotalQuantity tq, ProcessingQuantity pq;", nativeQuery = true)
-  Integer sumQuantityByProductIdAndWarehouseId(Integer warehouseId,Integer productId);
+  Integer totalQuantityProductInWarehouse(Integer warehouseId,Integer productId);
 }

@@ -152,39 +152,46 @@ public class OutBoundTransactionValidator {
     return "";
   }
 
-  public String checkPut(Integer id, OutboundTransaction transaction) {
+  public String checkChangeStatus(Integer id, OutboundTransaction transaction) {
     if (id == null || !outboundTransactionService.existById(id)) {
       return "Not found OutboundTransactionID";
     }
     OutboundTransaction oldTransaction = outboundTransactionService.getOutboundTransactionById(id);
-    System.out.println(oldTransaction);
+
     String oldStatus = oldTransaction.getStatus();
     String newStatus = transaction.getStatus();
 
     // Chỉ cho phép thay đổi trạng thái theo các quy tắc
-    if (oldStatus.equals("cancel") || oldStatus.equals("done")) {
+    if (oldStatus.equals("cancel") || oldStatus.equals("completed")) {
       return "Outbound Transactions has been " + oldStatus+", You are not allowed to change.";
     }
+    //not accept change Date of transaction
     if(transaction.getDate() != null && !transaction.getDate().equals(oldTransaction.getDate())) {
       return "You are only allowed to change status.";
     }
+    //not accept change destination of transaction
     if(transaction.getDestination() != null && !transaction.getDestination().equals(oldTransaction.getDestination())) {
       return "You are only allowed to change status.";
     }
+    //not accept change external_destination of transaction
     if(transaction.getExternal_destination() != null && !transaction.getExternal_destination().equals(oldTransaction.getExternal_destination())) {
       return "You are only allowed to change status.";
     }
+    //not accept change maker of transaction
     if(transaction.getMaker_id() != null && !transaction.getMaker_id().equals(oldTransaction.getMaker_id())) {
       return "You are only allowed to change status.";
     }
+    //not accept change warehouse of transaction
     if(transaction.getWarehouse_id() != null && !transaction.getWarehouse_id().equals(oldTransaction.getWarehouse_id())) {
       return "You are only allowed to change status.";
     }
+    // only change pending -> processing || pending -> cancel
     if (oldStatus.equals("pending") && !(newStatus.equals("processing") || newStatus.equals("cancel"))) {
       return "You can only change status from pending to processing or cancel.";
     }
-    if (oldStatus.equals("processing") && !(newStatus.equals("done") || newStatus.equals("cancel"))) {
-      return "You can only change status from processing to done or cancel.";
+    // only change processing -> completed || processing -> cancel
+    if (oldStatus.equals("processing") && !(newStatus.equals("completed") || newStatus.equals("cancel"))) {
+      return "You can only change status from processing to completed or cancel.";
     }
 
     return "";
