@@ -2,6 +2,8 @@ package com.app.zware.Repositories;
 
 import com.app.zware.Entities.WarehouseItems;
 
+import jakarta.persistence.criteria.CriteriaBuilder.In;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -74,6 +76,14 @@ public interface WarehouseItemsRepository extends JpaRepository<WarehouseItems, 
             "where i.product_id = ?1 " +
             "ORDER BY i.expire_date, wi.quantity DESC", nativeQuery = true)
     List<WarehouseItems> findByProductId(Integer productId);
+
+    @Query(value = "SELECT wi.* from WarehouseItems wi \n"
+        + "JOIN Items i on i.id = wi.item_id\n"
+        + "WHERE wi.zone_id = ?1\n"
+        + "AND i.product_id = ?2\n"
+        + "AND i.expire_date= ?3\n"
+        + "LIMIT 1", nativeQuery = true)
+    WarehouseItems findByZoneAndProductAndDate(Integer zoneId, Integer productId, LocalDate date);
 
 
 }

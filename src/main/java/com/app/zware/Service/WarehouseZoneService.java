@@ -33,12 +33,6 @@ public class WarehouseZoneService {
     warehouseZoneRespository.save(warehouseZone);
   }
 
-  public boolean checkIdExist(Integer id) {
-    return warehouseZoneRespository.existsById(id);
-
-  }
-
-
   public WarehouseZone merger(Integer oldWarehouseZoneId, WarehouseZone newWarehouseZone) {
     WarehouseZone oldWarehouseZone = warehouseZoneRespository.findById(oldWarehouseZoneId)
         .orElse(null);

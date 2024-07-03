@@ -3,6 +3,7 @@ package com.app.zware.Controllers;
 import com.app.zware.Entities.GoodsDisposal;
 import com.app.zware.Entities.User;
 import com.app.zware.HttpEntities.CustomResponse;
+import com.app.zware.HttpEntities.GoodsDisposalDTO;
 import com.app.zware.Service.GoodsDisposalService;
 import com.app.zware.Service.UserService;
 import com.app.zware.Service.WarehouseService;
@@ -175,6 +176,35 @@ public class GoodsDisposalController {
         goodsDisposalService.getByWarehouse(warehouseId));
 
     return new ResponseEntity<>(customResponse, HttpStatus.OK);
+  }
+
+  @PostMapping("/create")
+  public ResponseEntity<?> create(
+      @RequestBody GoodsDisposalDTO disposalDTO,
+      HttpServletRequest request){
+    CustomResponse customResponse = new CustomResponse();
+
+    //authorization
+    User requestMaker = userService.getRequestMaker(request);
+    if (!requestMaker.getRole().equals("admin") &&
+        !requestMaker.getWarehouse_id().equals(disposalDTO.getWarehouse_id())
+    ){
+      customResponse.setAll(false, "You are not allowed", null);
+      return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    //validation
+    String checkMessage = goodsDisposalValidator.checkCreate(disposalDTO);
+    if (!checkMessage.isEmpty()){
+      customResponse.setAll(false, checkMessage, null);
+      return ResponseEntity.ok(customResponse);
+    }
+
+    //validation passed
+
+
+
+    return ResponseEntity.ok(disposalDTO.toString());
   }
 
 }

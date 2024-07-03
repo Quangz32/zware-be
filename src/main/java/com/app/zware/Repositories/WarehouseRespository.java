@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -16,6 +15,10 @@ public interface WarehouseRespository extends JpaRepository<Warehouse, Integer> 
 
   @Query(value = "select * from warehouses where id=?1 and isdeleted=false", nativeQuery = true)
   Optional<Warehouse> findById(Integer id);
+
+  @Query(value = "SELECT * from Warehouses\n"
+      + "WHERE id = (SELECT warehouse_id from WarehouseZones where id=?1)", nativeQuery = true)
+  Warehouse findByZone(Integer zoneId);
 
   @Query(value = "select * from warehouses where name=?1 and isdeleted=false", nativeQuery = true)
   Optional<Warehouse> findByName(String name);

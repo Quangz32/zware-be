@@ -34,6 +34,10 @@ public class WarehouseService {
     return wareHouseRespository.findAll();
   }
 
+  public Warehouse getByZone(Integer zoneId){
+    return wareHouseRespository.findByZone(zoneId);
+  }
+
   public Warehouse createWareHouse(Warehouse request) {
     Warehouse warehouse = new Warehouse();
     warehouse.setName(request.getName());
@@ -67,23 +71,16 @@ public class WarehouseService {
     return oldWarehouse;
   }
 
-
   public Warehouse updateWarehouse(Warehouse mergedWarehouse) {
     return wareHouseRespository.save(mergedWarehouse);
 
   }
 
-  public List<WarehouseZone> getZonesByWarehouseId(Integer warehouseId) {
-    return zoneRespository.findByWarehouseId(warehouseId);
-  }
-
-  public List<WarehouseItems> getItemsByWarehouseId(Integer warehouseId) {
-    return warehouseItemsRepository.findWarehouseItemByWarehouseId(warehouseId);
-  }
-
   public boolean existById(Integer warehouseId){
     return wareHouseRespository.existByIdAndIsDeletedFalse(warehouseId);
   }
+
+
 
 
 }

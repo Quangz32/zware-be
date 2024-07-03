@@ -4,6 +4,7 @@ import com.app.zware.Entities.InboundTransactionDetail;
 import com.app.zware.Entities.OutboundTransactionDetail;
 import com.app.zware.Entities.WarehouseItems;
 import com.app.zware.Repositories.WarehouseItemsRepository;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -149,5 +150,10 @@ public class WarehouseItemsService {
 
   public List<WarehouseItems> findByProductId(Integer productId){
     return warehouseItemsRepository.findByProductId(productId);
+  }
+
+  public WarehouseItems findByZoneAndProductAndDate(
+      Integer zoneId, Integer productId, LocalDate date){
+    return warehouseItemsRepository.findByZoneAndProductAndDate(zoneId, productId, date);
   }
 }
