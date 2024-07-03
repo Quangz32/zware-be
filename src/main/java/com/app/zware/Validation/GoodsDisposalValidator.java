@@ -93,6 +93,10 @@ public class GoodsDisposalValidator {
       return "Product Id is not valid";
     }
 
+    if ((int) detail.getQuantity() <=0 ){
+      return "Quantity must be more then 0";
+    }
+
     WarehouseItems wi = warehouseItemsService.findByZoneAndProductAndDate(
         detail.getZone_id(), detail.getProduct_id(), detail.getExpire_date()
     );

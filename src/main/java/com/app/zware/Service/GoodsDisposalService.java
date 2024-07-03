@@ -19,6 +19,10 @@ public class GoodsDisposalService {
     return goodsDisposalRepository.findAll();
   }
 
+  public GoodsDisposal save(GoodsDisposal disposal){
+    return goodsDisposalRepository.save(disposal);
+  }
+
   public GoodsDisposal getGoodsById(Integer id) {
     return goodsDisposalRepository.findById(id).orElse(null);
   }

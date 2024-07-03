@@ -1,17 +1,20 @@
 package com.app.zware.Controllers;
 
+import com.app.zware.Entities.DisposedGood;
 import com.app.zware.Entities.GoodsDisposal;
+import com.app.zware.Entities.Item;
 import com.app.zware.Entities.User;
 import com.app.zware.HttpEntities.CustomResponse;
+import com.app.zware.HttpEntities.DisposedGoodsDTO;
 import com.app.zware.HttpEntities.GoodsDisposalDTO;
 import com.app.zware.Service.GoodsDisposalService;
+import com.app.zware.Service.ItemService;
 import com.app.zware.Service.UserService;
 import com.app.zware.Service.WarehouseItemsService;
 import com.app.zware.Service.WarehouseService;
 import com.app.zware.Validation.GoodsDisposalValidator;
 import com.app.zware.Validation.WarehouseValidator;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.websocket.server.PathParam;
 import java.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -47,6 +50,9 @@ public class GoodsDisposalController {
 
   @Autowired
   WarehouseItemsService warehouseItemsService;
+
+  @Autowired
+  ItemService itemService;
 
   @GetMapping("")
   public ResponseEntity<?> index() {
@@ -162,7 +168,7 @@ public class GoodsDisposalController {
   }
 
   @GetMapping(params = "warehouse_id")
-  public ResponseEntity<?> getByWarehouseId(@RequestParam("warehouse_id") Integer warehouseId){
+  public ResponseEntity<?> getByWarehouseId(@RequestParam("warehouse_id") Integer warehouseId) {
     //response
     CustomResponse customResponse = new CustomResponse();
 
@@ -186,28 +192,49 @@ public class GoodsDisposalController {
   @PostMapping("/create")
   public ResponseEntity<?> create(
       @RequestBody GoodsDisposalDTO disposalDTO,
-      HttpServletRequest request){
+      HttpServletRequest request) {
     CustomResponse customResponse = new CustomResponse();
 
     //authorization
     User requestMaker = userService.getRequestMaker(request);
     if (!requestMaker.getRole().equals("admin") &&
         !requestMaker.getWarehouse_id().equals(disposalDTO.getWarehouse_id())
-    ){
+    ) {
       customResponse.setAll(false, "You are not allowed", null);
       return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
     }
 
     //validation
     String checkMessage = goodsDisposalValidator.checkCreate(disposalDTO);
-    if (!checkMessage.isEmpty()){
+    if (!checkMessage.isEmpty()) {
       customResponse.setAll(false, checkMessage, null);
       return ResponseEntity.ok(customResponse);
     }
 
     //validation passed
-    
+    GoodsDisposal newDisposal = new GoodsDisposal();
+    newDisposal.setWarehouse_id(disposalDTO.getWarehouse_id());
+    newDisposal.setMaker_id(requestMaker.getId());
+    newDisposal.setDate(LocalDate.now());
+    newDisposal.setStatus("completed");
 
+    GoodsDisposal savedDisposal = goodsDisposalService.save(newDisposal);
+
+    for (DisposedGoodsDTO detail : disposalDTO.getDetails()) {
+      Item savedItem = itemService.getByProductAndDate(detail.getProduct_id(),
+          detail.getExpire_date());
+      DisposedGood newDetail = new DisposedGood();
+      newDetail.setDisposal_id(savedDisposal.getId());
+      newDetail.setItem_id(savedItem.getId());
+      newDetail.setQuantity(detail.getQuantity());
+      newDetail.setReason(detail.getReason());
+      newDetail.setZone_id(detail.getZone_id());
+
+      //Execute remove
+      warehouseItemsService.removeFromZone(
+          newDetail.getZone_id(), detail.getProduct_id(), detail.getExpire_date(),
+          newDetail.getQuantity());
+    }
 
     return ResponseEntity.ok(disposalDTO.toString());
   }
