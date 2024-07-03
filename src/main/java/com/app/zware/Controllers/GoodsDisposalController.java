@@ -6,11 +6,13 @@ import com.app.zware.HttpEntities.CustomResponse;
 import com.app.zware.HttpEntities.GoodsDisposalDTO;
 import com.app.zware.Service.GoodsDisposalService;
 import com.app.zware.Service.UserService;
+import com.app.zware.Service.WarehouseItemsService;
 import com.app.zware.Service.WarehouseService;
 import com.app.zware.Validation.GoodsDisposalValidator;
 import com.app.zware.Validation.WarehouseValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.websocket.server.PathParam;
+import java.time.LocalDate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,6 +44,9 @@ public class GoodsDisposalController {
 
   @Autowired
   WarehouseValidator warehouseValidator;
+
+  @Autowired
+  WarehouseItemsService warehouseItemsService;
 
   @GetMapping("")
   public ResponseEntity<?> index() {
@@ -201,7 +206,7 @@ public class GoodsDisposalController {
     }
 
     //validation passed
-
+    
 
 
     return ResponseEntity.ok(disposalDTO.toString());
