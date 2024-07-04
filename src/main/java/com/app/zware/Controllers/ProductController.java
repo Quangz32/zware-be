@@ -187,16 +187,11 @@ public class ProductController {
   }
 
   @GetMapping("/{productid}/image")
-  public ResponseEntity<?> showImage(@PathVariable Integer productid, HttpServletRequest request)
+  public ResponseEntity<?> showImage(@PathVariable Integer productid)
       throws IOException {
     //response
     CustomResponse customResponse = new CustomResponse();
-    //Authorization: Only admin
-    User user = userService.getRequestMaker(request);
-    if (!user.getRole().equals("admin")) {
-      customResponse.setAll(false, "You are not allowed", null);
-      return new ResponseEntity<>(customResponse, HttpStatus.UNAUTHORIZED);
-    }
+    //Authorization: All
 
     //validation
     String msg = productValidator.checkGet(productid);
