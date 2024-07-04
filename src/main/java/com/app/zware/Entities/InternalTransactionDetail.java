@@ -10,7 +10,7 @@ import lombok.Data;
 @Data
 public class InternalTransactionDetail {
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer id;
   private Integer transaction_id;
   private Integer source_zone; //zone_id

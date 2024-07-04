@@ -14,4 +14,8 @@ public class InternalTransactionService {
   public List<InternalTransaction> getAll(){
     return internalTransactionRepository.findAll();
   }
+
+  public InternalTransaction save(InternalTransaction transaction){
+    return internalTransactionRepository.save(transaction);
+  }
 }

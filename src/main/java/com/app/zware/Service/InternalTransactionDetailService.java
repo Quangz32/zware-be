@@ -16,4 +16,8 @@ public class InternalTransactionDetailService {
     return internalTransactionDetailRepository.findAll();
   }
 
+  public InternalTransactionDetail save(InternalTransactionDetail detail){
+    return internalTransactionDetailRepository.save(detail);
+  }
+
 }
