@@ -83,11 +83,14 @@ public class WarehouseItemsService {
     return warehouseItemsRepository.findByProductAndWarehouse(productId, warehouseId);
   }
 
-  public int getTotalQuantityByProductIdAndWarehouseId(Integer productId, Integer warehouseId) {
-    List<WarehouseItems> warehouseItems = this.getByProductAndWarehouse(productId,
-        warehouseId);
+  public List<WarehouseItems> getNonExpiredByProductAndWarehouse(
+      Integer productId, Integer warehouseId) {
+    return warehouseItemsRepository.findNonExpiredByProductAndWarehouse(productId, warehouseId);
+  }
 
-//    System.out.println(warehouseItems.toString());
+  public int getQuantityNonExpiredByProductAndWarehouse(Integer productId, Integer warehouseId) {
+    List<WarehouseItems> warehouseItems =
+        this.getByProductAndWarehouse(productId, warehouseId);
     if (warehouseItems.isEmpty()) {
       return 0;
     }
@@ -99,7 +102,7 @@ public class WarehouseItemsService {
     return total;
   }
 
-  public List<OutboundTransactionDetail> createTransactionDetailsByProductAndQuantityAndWarehouse(
+  public List<OutboundTransactionDetail> generateOutboundDetail(
       Integer productId, Integer quantity, Integer warehouseId
   ) {
 

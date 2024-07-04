@@ -63,6 +63,15 @@ public interface WarehouseItemsRepository extends JpaRepository<WarehouseItems, 
       + "ORDER BY i.expire_date, wi.quantity DESC;", nativeQuery = true)
   List<WarehouseItems> findByProductAndWarehouse(Integer productId, Integer warehouseId);
 
+  @Query(value = "SELECT wi.* from \n"
+      + "WarehouseItems wi \n"
+      + "JOIN Items i on i.id = wi.item_id \n"
+      + "JOIN WarehouseZones wz on wz.id = wi.zone_id \n"
+      + "WHERE wz.warehouse_id = ?2 and i.product_id=?1\n"
+      + "AND  i.expire_date > CURDATE())\n"
+      + "ORDER BY i.expire_date, wi.quantity DESC;", nativeQuery = true)
+  List<WarehouseItems> findNonExpiredByProductAndWarehouse(Integer productId, Integer warehouseId);
+
   @Query(value = "select * from warehouseitems where zone_id=?1 and isdeleted=false", nativeQuery = true)
   List<WarehouseItems> findByZoneId(Integer zoneId);
 

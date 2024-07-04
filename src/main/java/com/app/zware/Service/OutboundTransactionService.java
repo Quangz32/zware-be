@@ -54,8 +54,8 @@ public class OutboundTransactionService {
     Optional.ofNullable(request.getMaker_id()).ifPresent(outboundTransaction::setMaker_id);
     Optional.ofNullable(request.getStatus()).ifPresent(outboundTransaction::setStatus);
     Optional.ofNullable(request.getDestination()).ifPresent(outboundTransaction::setDestination);
-    Optional.ofNullable(request.getExternal_destination())
-        .ifPresent(outboundTransaction::setExternal_destination);
+//    Optional.ofNullable(request.getExternal_destination())
+//        .ifPresent(outboundTransaction::setExternal_destination);
 
     outboundTransaction.setIsdeleted(false);
     return outboundTransaction;

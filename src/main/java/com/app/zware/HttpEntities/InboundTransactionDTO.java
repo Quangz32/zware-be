@@ -11,4 +11,6 @@ public class InboundTransactionDTO {
 
   private ArrayList<InboundDetailDTO> details;
 
+  //date, maker_id, status: Auto
+
 }

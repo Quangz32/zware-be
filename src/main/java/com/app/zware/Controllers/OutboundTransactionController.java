@@ -84,17 +84,13 @@ public class OutboundTransactionController {
     newTransaction.setDate(LocalDate.now());
     newTransaction.setMaker_id(requestMaker.getId());
     newTransaction.setStatus("pending");  //default when create
-    if (transactionDTO.getDestination() == null) {
-      newTransaction.setExternal_destination(transactionDTO.getExternal_destination());
-    } else {
-      newTransaction.setDestination(transactionDTO.getDestination());
-    }
+    newTransaction.setDestination(transactionDTO.getDestination());
 
     OutboundTransaction savedTransaction = outboundTransactionService.save(newTransaction);
 
     for (OutboundDetailDTO detail : transactionDTO.getDetails()) {
       List<OutboundTransactionDetail> generatedDetailList =
-          warehouseItemsService.createTransactionDetailsByProductAndQuantityAndWarehouse(
+          warehouseItemsService.generateOutboundDetail(
               detail.getProduct_id(), detail.getQuantity(), transactionDTO.getWarehouse_id()
           );
 
@@ -105,7 +101,7 @@ public class OutboundTransactionController {
       System.out.println(detail);
     }
 
-    customResponse.setAll(true, "Create outbound transaction succeess", null);
+    customResponse.setAll(true, "Create outbound transaction success", savedTransaction);
     return ResponseEntity.ok(customResponse);
   }
 

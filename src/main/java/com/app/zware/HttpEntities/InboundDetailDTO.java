@@ -9,4 +9,6 @@ public class InboundDetailDTO {
   private LocalDate expire_date;
   private Integer quantity;
   private Integer zone_id;
+
+  //transaction_id, item_id: Auto
 }

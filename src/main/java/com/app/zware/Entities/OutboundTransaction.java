@@ -18,7 +18,6 @@ public class OutboundTransaction {
   private LocalDate date;
   private Integer maker_id;
   private String status;
-  private Integer destination;
-  private String external_destination;
+  private String destination;
   private Boolean isdeleted = false;
 }
