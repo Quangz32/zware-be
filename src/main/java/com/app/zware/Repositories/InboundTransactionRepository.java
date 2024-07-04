@@ -21,5 +21,5 @@ public interface InboundTransactionRepository extends JpaRepository<InboundTrans
   boolean existByIdAndIsDeletedFalse(Integer id);
 
   @Query(value = "SELECT * FROM inboundtransactions where warehouse_id=?1 and isdeleted =0",nativeQuery = true)
-  List <InboundTransaction> getInboundTransactionById (Integer warehouseId);
+  List <InboundTransaction> findByWarehouse (Integer warehouseId);
 }

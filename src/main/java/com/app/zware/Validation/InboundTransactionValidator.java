@@ -59,17 +59,8 @@ public class InboundTransactionValidator {
       return "Warehouse Id is required";
     }
 
-    if (transactionDTO.getSource() == null && transactionDTO.getExternal_source() == null) {
+    if (transactionDTO.getSource() == null || transactionDTO.getSource().isEmpty()) {
       return "Source or External source is required";
-    }
-
-    if (transactionDTO.getSource() != null && transactionDTO.getExternal_source() != null) {
-      return "Only source or external source, not both";
-    }
-
-    if (transactionDTO.getSource() != null &&
-        transactionDTO.getSource().equals(transactionDTO.getWarehouse_id())) {
-      return "Cannot inbound from same warehouse";
     }
 
     if (transactionDTO.getDetails() == null ||
@@ -80,11 +71,6 @@ public class InboundTransactionValidator {
     //CONDITION CHECK
     if (!warehouseService.existById(transactionDTO.getWarehouse_id())) {
       return "Warehouse ID is not valid";
-    }
-
-    if (transactionDTO.getSource() != null &&
-        !warehouseService.existById(transactionDTO.getSource())) {
-      return "Source is not valid";
     }
 
     for (InboundDetailDTO detail : transactionDTO.getDetails()) {
@@ -99,19 +85,10 @@ public class InboundTransactionValidator {
 
   public String checkCreateDetail(InboundDetailDTO detail, InboundTransactionDTO transactionDTO) {
     //CHECK REQUIRE
-    if (detail.getProduct_id() == null
+    if (detail.getProduct_id() == null || detail.getExpire_date() == null
         || detail.getQuantity() == null || detail.getZone_id() == null
     ) {
-      return "Product Id, Quantity and ZoneId are required in each detail";
-    }
-
-    if (transactionDTO.getSource() == null && detail.getExpire_date() == null
-    ) {
-      return "Expire date is required when the source is external";
-    }
-
-    if (transactionDTO.getSource() != null && detail.getExpire_date() != null) {
-      return "Expire date is not allowed when source is internal";
+      return "Product Id, Expire date, Quantity and ZoneId are required in each detail";
     }
 
     //CHECK CONDITION
@@ -119,22 +96,9 @@ public class InboundTransactionValidator {
       return "Product Id is not valid: " + detail.getProduct_id();
     }
 
-    if (transactionDTO.getSource() == null
-        && LocalDate.now().isAfter(detail.getExpire_date())) {
+    if (LocalDate.now().isAfter(detail.getExpire_date())) {
       return "Expire date cannot be in the past";
     }
-
-    if (transactionDTO.getSource() != null) {
-      int quantityInWarehouse =
-          warehouseItemsService.getTotalQuantityByProductIdAndWarehouseId(
-              detail.getProduct_id(), transactionDTO.getSource()
-          );
-
-      if (quantityInWarehouse < detail.getQuantity()) {
-        return "Quantity of product " + detail.getProduct_id() + " is not enough (Available: "+ quantityInWarehouse+" )";
-      }
-    }
-
 
     if (!warehouseZoneService.existById(detail.getZone_id())) {
       return "Zone id is not exist: " + detail.getZone_id();
@@ -167,18 +131,12 @@ public class InboundTransactionValidator {
       return "Maker id is not valid";
     }
 
-    List<String> statusList = Arrays.asList("pending", "processing", "complete", "cancel");
+    List<String> statusList = Arrays.asList("pending", "processing", "completed", "canceled");
     if (!statusList.contains(inboundTransaction.getStatus())) {
       return "Status is not valid";
     }
 
-    Integer source = inboundTransaction.getSource();
-    if (source != null && !outboundTransactionRepository.existsById(source)) {
-      return "Source is not valid";
-    }
-    if (inboundTransaction.getExternal_source() == null) {
-      return "External source is invalid";
-    }
+    //check Source HERE
 
     return "";
   }

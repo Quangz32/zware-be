@@ -66,8 +66,6 @@ public class InboundTransactionController {
       return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
     }
 
-
-
     //validation
     String message = validator.checkCreate(inboundDto);
     if (!message.isEmpty()){
@@ -83,11 +81,7 @@ public class InboundTransactionController {
     newTransaction.setDate(LocalDate.now());
     newTransaction.setMaker_id(requestMaker.getId());
     newTransaction.setStatus("pending");  //default when create
-    if (inboundDto.getSource() == null){
-      newTransaction.setExternal_source(inboundDto.getExternal_source());
-    } else{
-      newTransaction.setSource(inboundDto.getSource());
-    }
+    newTransaction.setSource(inboundDto.getSource());
 
     InboundTransaction savedTransaction = service.save(newTransaction);
 
@@ -95,7 +89,7 @@ public class InboundTransactionController {
 
     //NEW TRANSACTION'S DETAILS
     //If source is external
-    if (inboundDto.getSource() == null){
+
       for (InboundDetailDTO detail : inboundDto.getDetails()){
         Item itemToSave =
             itemService.getOrCreateByProductAndDate(detail.getProduct_id(), detail.getExpire_date());
@@ -107,28 +101,8 @@ public class InboundTransactionController {
         detailToSave.setQuantity(detail.getQuantity());
         inboundTransactionDetailService.save(detailToSave);
       }
-    } else{
-//      detail: cần lấy sản phầm gì, số lượng bao nhiêu, để vào zone nào
-      for (InboundDetailDTO detail : inboundDto.getDetails()){
 
-        //Tự động lấy hàng cho đủ số lượng, theo đúng thứ tự ưu tiên
-        List<OutboundTransactionDetail> generatedDetailList =
-            warehouseItemsService.createTransactionDetailsByProductAndQuantityAndWarehouse(
-                detail.getProduct_id(), detail.getQuantity(), inboundDto.getSource()
-            );
-        for (OutboundTransactionDetail generatedDetail : generatedDetailList){
-          InboundTransactionDetail detailToSave = new InboundTransactionDetail();
-          detailToSave.setTransaction_id(savedTransaction.getId());
-          detailToSave.setItem_id(generatedDetail.getItem_id());
-          detailToSave.setZone_id(generatedDetail.getZone_id());
-          detailToSave.setQuantity(generatedDetail.getQuantity());
-          inboundTransactionDetailService.save(detailToSave);
-        }
-      }
-    }
-
-
-    customResponse.setAll(true, "Create inbound transaction success", null);
+    customResponse.setAll(true, "Create inbound transaction success", savedTransaction);
     return ResponseEntity.ok(customResponse);
   }
 
@@ -286,7 +260,7 @@ public class InboundTransactionController {
 
     //finally
     customResponse.setAll(true, "Get Inbound Transaction success",
-            service.getInboundByWarehouseId(warehouseId));
+            service.getByWarehouse(warehouseId));
 
     return new ResponseEntity<>(customResponse, HttpStatus.OK);
   }

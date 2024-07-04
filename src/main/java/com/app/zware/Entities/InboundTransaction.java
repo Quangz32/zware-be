@@ -15,18 +15,11 @@ public class InboundTransaction {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer id;
-
   private Integer warehouse_id;
-
   private LocalDate date;
-
   private Integer maker_id;
-
   private String status;
-
-  private Integer source; //warehouse id
-
-  private String external_source;
-
+  private String source;
   private boolean isdeleted = false;
+
 }
