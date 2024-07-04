@@ -195,4 +195,30 @@ public class InboundTransactionValidator {
     return checkGet(id);
   }
 
+  // checkStatus
+  // Change status
+  // Make Sure pending -> processing or cancel
+  // processing -> completed or cancel
+  // completed or cancel -> not change status
+
+  public String checkStatus(InboundTransaction transaction,String newStatus) {
+    String currentStatus = transaction.getStatus();
+    
+    if (currentStatus.equals("pending")){
+      if(newStatus.equals("processing")||newStatus.equals("cancel")){
+        return "";
+      }
+    } else if (currentStatus.equals("processing")) {
+       if (newStatus.equals("complete")||newStatus.equals("cancel")){
+         return "";
+       }
+    } else if (currentStatus.equals("complete")||currentStatus.equals("cancel")) {
+      return "Cannot change status from "+ currentStatus;
+      
+    }
+    return "Invalid status transition from " + currentStatus +" to "+ newStatus;
+  }
+
+
+
 }

@@ -52,25 +52,23 @@ public class InboundTransactionController {
 
   @PostMapping("/create")
   public ResponseEntity<?> createInboundTransaction(
-      @RequestBody InboundTransactionDTO inboundDto,
-      HttpServletRequest request)
-  {
+          @RequestBody InboundTransactionDTO inboundDto,
+          HttpServletRequest request) {
     CustomResponse customResponse = new CustomResponse();
 
     //authorization
     User requestMaker = userService.getRequestMaker(request);
     if (!requestMaker.getRole().equals("admin") &&
-        !requestMaker.getWarehouse_id().equals(inboundDto.getWarehouse_id())
-    ){
+            !requestMaker.getWarehouse_id().equals(inboundDto.getWarehouse_id())
+    ) {
       customResponse.setAll(false, "You are not allowed", null);
       return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
     }
 
 
-
     //validation
     String message = validator.checkCreate(inboundDto);
-    if (!message.isEmpty()){
+    if (!message.isEmpty()) {
       customResponse.setAll(false, message, null);
       return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
     }
@@ -83,22 +81,21 @@ public class InboundTransactionController {
     newTransaction.setDate(LocalDate.now());
     newTransaction.setMaker_id(requestMaker.getId());
     newTransaction.setStatus("pending");  //default when create
-    if (inboundDto.getSource() == null){
+    if (inboundDto.getSource() == null) {
       newTransaction.setExternal_source(inboundDto.getExternal_source());
-    } else{
+    } else {
       newTransaction.setSource(inboundDto.getSource());
     }
 
     InboundTransaction savedTransaction = service.save(newTransaction);
 
 
-
     //NEW TRANSACTION'S DETAILS
     //If source is external
-    if (inboundDto.getSource() == null){
-      for (InboundDetailDTO detail : inboundDto.getDetails()){
+    if (inboundDto.getSource() == null) {
+      for (InboundDetailDTO detail : inboundDto.getDetails()) {
         Item itemToSave =
-            itemService.getOrCreateByProductAndDate(detail.getProduct_id(), detail.getExpire_date());
+                itemService.getOrCreateByProductAndDate(detail.getProduct_id(), detail.getExpire_date());
 
         InboundTransactionDetail detailToSave = new InboundTransactionDetail();
         detailToSave.setTransaction_id(savedTransaction.getId());
@@ -107,16 +104,16 @@ public class InboundTransactionController {
         detailToSave.setQuantity(detail.getQuantity());
         inboundTransactionDetailService.save(detailToSave);
       }
-    } else{
+    } else {
 //      detail: cần lấy sản phầm gì, số lượng bao nhiêu, để vào zone nào
-      for (InboundDetailDTO detail : inboundDto.getDetails()){
+      for (InboundDetailDTO detail : inboundDto.getDetails()) {
 
         //Tự động lấy hàng cho đủ số lượng, theo đúng thứ tự ưu tiên
         List<OutboundTransactionDetail> generatedDetailList =
-            warehouseItemsService.createTransactionDetailsByProductAndQuantityAndWarehouse(
-                detail.getProduct_id(), detail.getQuantity(), inboundDto.getSource()
-            );
-        for (OutboundTransactionDetail generatedDetail : generatedDetailList){
+                warehouseItemsService.createTransactionDetailsByProductAndQuantityAndWarehouse(
+                        detail.getProduct_id(), detail.getQuantity(), inboundDto.getSource()
+                );
+        for (OutboundTransactionDetail generatedDetail : generatedDetailList) {
           InboundTransactionDetail detailToSave = new InboundTransactionDetail();
           detailToSave.setTransaction_id(savedTransaction.getId());
           detailToSave.setItem_id(generatedDetail.getItem_id());
@@ -159,7 +156,7 @@ public class InboundTransactionController {
 
     //Get
     customResponse.setAll(true, "get data of inbound transaction with id " + id + " success",
-        service.getById(id));
+            service.getById(id));
     return new ResponseEntity<>(customResponse, HttpStatus.OK);
   }
 
@@ -185,9 +182,9 @@ public class InboundTransactionController {
 
   @PutMapping("/{id}")
   public ResponseEntity<?> update(
-      @PathVariable Integer id,
-      @RequestBody InboundTransaction transaction,
-      HttpServletRequest request
+          @PathVariable Integer id,
+          @RequestBody InboundTransaction transaction,
+          HttpServletRequest request
   ) {
 
     //response
@@ -195,7 +192,7 @@ public class InboundTransactionController {
     //Validation: Admin or Transaction's maker
     User requestMaker = userService.getRequestMaker(request);
     if (!requestMaker.getRole().equals("admin") && !requestMaker.getId()
-        .equals(transaction.getId())) {
+            .equals(transaction.getId())) {
       customResponse.setAll(false, "You are not allowed", null);
       return new ResponseEntity<>(customResponse, HttpStatus.UNAUTHORIZED);
     }
@@ -220,8 +217,8 @@ public class InboundTransactionController {
 
   @DeleteMapping("{id}")
   public ResponseEntity<?> destroy(
-      @PathVariable Integer id,
-      HttpServletRequest request
+          @PathVariable Integer id,
+          HttpServletRequest request
   ) {
 
     //Response
@@ -291,4 +288,66 @@ public class InboundTransactionController {
     return new ResponseEntity<>(customResponse, HttpStatus.OK);
   }
 
-}
+
+  @PutMapping("{id}/changeStatus")
+  public ResponseEntity<?> changeStatus(
+          @PathVariable Integer id,
+          @RequestBody InboundTransaction inboundTransaction,
+          HttpServletRequest request) {
+
+    // response
+    CustomResponse customResponse = new CustomResponse();
+
+    // Authorization
+    User requestMaker = userService.getRequestMaker(request);
+    InboundTransaction transaction = service.getById(id);
+    if (!requestMaker.getRole().equals("admin") && !requestMaker.getWarehouse_id().equals(transaction.getWarehouse_id())) {
+      customResponse.setAll(false, "You are not allowed", null);
+      return new ResponseEntity<>(customResponse, HttpStatus.UNAUTHORIZED);
+    }
+
+    // checkId Transition
+    String checkId = validator.checkGet(id);
+    if (!checkId.isEmpty()) {
+      customResponse.setAll(false, checkId, null);
+      return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    // CheckStatus
+    String checkStatus = validator.checkStatus(transaction, inboundTransaction.getStatus());
+    if (!checkStatus.isEmpty()) {
+      customResponse.setAll(false, checkStatus, null);
+      return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+    }
+
+
+    //update status
+    transaction.setStatus(inboundTransaction.getStatus());
+    service.update(transaction);
+
+
+    if ("complete".equals(inboundTransaction.getStatus()) && transaction.getExternal_source() != null) {
+      List<InboundTransactionDetail> details = inboundTransactionDetailService.findByInboundTransactionId(transaction.getId());
+      for (InboundTransactionDetail detail : details) {
+        Integer zoneId = detail.getZone_id();
+        Integer quantity = detail.getQuantity();
+        Integer itemId = detail.getItem_id();
+
+        Item item = itemService.getItemById(itemId);
+        Integer productId = item.getProduct_id();
+        LocalDate expireDate = item.getExpire_date();
+
+        WarehouseItems updatedWi = warehouseItemsService.addToZone(zoneId, productId, expireDate, quantity);
+        if (updatedWi == null) {
+          customResponse.setAll(false, "Failed to update warehouse items", null);
+          return new ResponseEntity<>(customResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+
+        }
+      }
+    }
+      customResponse.setAll(true, "Status updated successfully", null);
+      return new ResponseEntity<>(customResponse, HttpStatus.OK);
+
+    }
+  }
+
