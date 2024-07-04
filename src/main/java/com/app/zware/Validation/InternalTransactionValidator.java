@@ -94,8 +94,10 @@ public class InternalTransactionValidator {
     if (detailDTO.getQuantity() < 1) {
       return "Quantity must be more than 0";
     }
-    if (!zoneService.existById(detailDTO.getDestination_zone())) {
-      return "Source_zone is not valid [" + detailDTO.getDestination_zone() + "]";
+
+    if (detailDTO.getDestination_zone() != null &&
+        zoneService.existById(detailDTO.getDestination_zone())) {
+      return "Destination_zone is not valid [" + detailDTO.getDestination_zone() + "]";
     }
 
     //check condition
