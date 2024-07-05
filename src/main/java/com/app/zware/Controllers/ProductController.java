@@ -162,12 +162,13 @@ public class ProductController {
       HttpServletRequest request) throws IOException {
     //response
     CustomResponse customResponse = new CustomResponse();
-    //Authorization: Only admin
-    User user = userService.getRequestMaker(request);
-    if (!user.getRole().equals("admin")) {
-      customResponse.setAll(false, "You are not allowed", null);
-      return new ResponseEntity<>(customResponse, HttpStatus.UNAUTHORIZED);
-    }
+    //Authorization: Everyone
+//    User user = userService.getRequestMaker(request);
+//    if (!user.getRole().equals("admin")) {
+//      customResponse.setAll(false, "You are not allowed", null);
+//      return new ResponseEntity<>(customResponse, HttpStatus.UNAUTHORIZED);
+//    }
+
     //validation
     String msg = productValidator.checkGet(productid);
     if (!msg.isEmpty()) {

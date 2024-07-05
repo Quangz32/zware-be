@@ -27,7 +27,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
     // Bypass JWT authentication for /login
     final String requestURI = request.getRequestURI();
-    if (requestURI.equals("/api/auth/login")) {
+    if (requestURI.equals("/api/auth/login") ||
+        requestURI.startsWith("/imageproducts") ||
+        requestURI.startsWith("/avatars")) {
       filterChain.doFilter(request, response);
       return;
     }
