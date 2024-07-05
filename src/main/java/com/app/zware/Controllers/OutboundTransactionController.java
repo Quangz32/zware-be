@@ -16,6 +16,8 @@ import com.app.zware.Validation.WarehouseValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,7 +45,7 @@ public class OutboundTransactionController {
   UserService userService;
 
   @Autowired
-  OutboundTransactionDetailRepository outboundTransactionDetailRepository;
+  OutboundTransactionDetailService transactionDetailService;
 
   @Autowired
   WarehouseItemsService warehouseItemsService;
@@ -187,35 +189,88 @@ public class OutboundTransactionController {
     }
   }
 
-  @PutMapping("/{id}")
+  @PutMapping("/{id}/change_status")
   public ResponseEntity<?> update(@PathVariable("id") Integer id,
-      @RequestBody OutboundTransaction request,
-      HttpServletRequest userRequest) {
-    //response
+                                  @RequestBody Map<String, String> requestBody,
+                                  HttpServletRequest userRequest) {
+    // response
     CustomResponse customResponse = new CustomResponse();
-    //Validation: Admin or Transaction's maker
+
+    // validate checkGet
+    String checkedMessage = outBoundTransactionValidator.checkGet(id);
+    if (!checkedMessage.isEmpty()) {
+      customResponse.setAll(false, checkedMessage, null);
+      return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    Integer warehouseId = outboundTransactionService.getOutboundTransactionById(id).getWarehouse_id();
+
+    // validation: admin or manager warehouse
     User user = userService.getRequestMaker(userRequest);
-    if (!user.getRole().equals("admin") && !user.getId().equals(request.getMaker_id())) {
+    if (!"admin".equals(user.getRole()) && !warehouseId.equals(user.getWarehouse_id())) {
       customResponse.setAll(false, "You are not allowed", null);
       return new ResponseEntity<>(customResponse, HttpStatus.UNAUTHORIZED);
     }
 
-    //merge info
-    OutboundTransaction mergedOutboundTransaction = outboundTransactionService.merge(id, request);
-
-    //Validate
-    String message = outBoundTransactionValidator.checkPut(id, request);
-    if (!message.isEmpty()) {
-      customResponse.setAll(false, message, null);
+    // extract and validate status
+    String status = requestBody.get("status");
+    if (status == null || status.isEmpty()) {
+      customResponse.setAll(false, "Status is required", null);
       return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
     }
 
-    // update
-    OutboundTransaction updatedOutboundTransaction = outboundTransactionService.update(
-        mergedOutboundTransaction);
-    customResponse.setAll(true, "OutboundTransaction has been updated", updatedOutboundTransaction);
-    return new ResponseEntity<>(customResponse, HttpStatus.OK);
+    System.out.println("Status: " + status);
+    String checkedStatus = outBoundTransactionValidator.checkStatus(id, status);
+    if (!checkedStatus.isEmpty()) {
+      customResponse.setAll(false, checkedStatus, null);
+      return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+    }
 
+    // update new status
+    OutboundTransaction transaction = outboundTransactionService.getOutboundTransactionById(id);
+    transaction.setStatus(status);
+    outboundTransactionService.save(transaction);
+
+    // set quantity in warehouse
+    String messageResponse = "";
+
+    // get list details of transaction
+    List<OutboundTransactionDetail> detailList = transactionDetailService.getByOutboundTransaction(id);
+
+    // status = "shipping"
+    // remove item to zone
+    if ("shipping".equals(transaction.getStatus())) {
+      // loop check
+      for (OutboundTransactionDetail detail : detailList) {
+        // check validate quantity
+        String checkedQuantity = outBoundTransactionValidator.checkQuantity(detail.getZone_id(), detail.getItem_id(), detail.getQuantity());
+        if (!checkedQuantity.isEmpty()) {
+          customResponse.setAll(false, checkedQuantity, null);
+          return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+        }
+      }
+      // loop remove
+      for (OutboundTransactionDetail detail : detailList) {
+        // remove item
+        warehouseItemsService.removeItemToZone(detail.getZone_id(), detail.getItem_id(), detail.getQuantity());
+      }
+      messageResponse = "The outbound transaction has been shipping. Products are being prepared";
+    }
+    if ("completed".equals(transaction.getStatus())) {
+      messageResponse = "The outbound transaction was completed";
+    }
+
+    //status ="canceled"
+    if ("canceled".equals(transaction.getStatus())) {
+      for (OutboundTransactionDetail detail : detailList) {
+        // remove item
+        warehouseItemsService.addItemToZone(detail.getZone_id(), detail.getItem_id(), detail.getQuantity());
+      }
+      messageResponse = "Transaction has been cancelled. The product will be returned to the warehouse";
+    }
+
+    customResponse.setAll(true, messageResponse, null);
+    return new ResponseEntity<>(customResponse, HttpStatus.OK);
   }
 
   @GetMapping(params = "warehouse_id")
