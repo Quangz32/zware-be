@@ -2,12 +2,14 @@ package com.app.zware.Validation;
 
 
 import com.app.zware.Entities.OutboundTransaction;
+import com.app.zware.Entities.WarehouseItems;
 import com.app.zware.HttpEntities.OutboundDetailDTO;
 import com.app.zware.HttpEntities.OutboundTransactionDTO;
 import com.app.zware.Repositories.OutboundTransactionDetailRepository;
 import com.app.zware.Repositories.OutboundTransactionRepository;
 import com.app.zware.Repositories.UserRepository;
 import com.app.zware.Repositories.WarehouseRespository;
+import com.app.zware.Service.OutboundTransactionService;
 import com.app.zware.Service.ProductService;
 import com.app.zware.Service.WarehouseItemsService;
 import com.app.zware.Service.WarehouseService;
@@ -39,6 +41,9 @@ public class OutBoundTransactionValidator {
 
   @Autowired
   WarehouseItemsService warehouseItemsService;
+
+  @Autowired
+  OutboundTransactionService outboundTransactionService;
 
 
   public String checkCreate(OutboundTransactionDTO transactionDTO) {
@@ -109,16 +114,26 @@ public class OutBoundTransactionValidator {
     return "";
   }
 
-  public String checkPut(Integer id, OutboundTransaction outboundTransaction) {
-    if (id == null || !outboundTransactionRepository.existsById(id)) {
-      return "Not found OutboundTransactionID";
-    }
-    List<String> statusList = Arrays.asList("Pending", "Processing", "Done", "Cancel");
-    if (!statusList.contains(outboundTransaction.getStatus())) {
-      return "Status is not valid";
-    }
-    return checkPost(outboundTransaction);
+  public String checkStatus(Integer id, String status) {
+    OutboundTransaction oldTransaction = outboundTransactionService.getOutboundTransactionById(id);
+    String oldStatus = oldTransaction.getStatus();
+    System.out.println(oldStatus);
 
+    String newStatus = status;
+    System.out.println(oldStatus.equals(newStatus));
+
+    // status = completed or cancel, not allowed to change
+    if (oldStatus.equals("canceled") || oldStatus.equals("completed")) {
+      return "Outbound Transactions has been " + oldStatus + ", You are not allowed to change.";
+    }
+
+    if (oldStatus.equals("pending") && !(newStatus.equals("shipping") || newStatus.equals("canceled"))) {
+      return "You can only change status from pending to shipping or canceled.";
+    }
+    if (oldStatus.equals("processing") && !(newStatus.equals("completed") || newStatus.equals("canceled"))) {
+      return "You can only change status from processing to completed or canceled.";
+    }
+    return "";
   }
 
   public String checkGet(Integer id) {
@@ -137,9 +152,12 @@ public class OutBoundTransactionValidator {
     return outboundTransactionRepository.existsByIdAndIsDeletedFalse(id);
   }
 
-  public String checkGetDetail(Integer id) {
-    if (!checkId(id)) {
-      return "OutboundID not found or OutboundID was deleted !";
+  public String checkQuantity(Integer itemId, Integer zoneId, Integer quantity) {
+    Integer quantityInWarehouse = warehouseItemsService.getQuantityNonExpiredByItemAndZone(itemId, zoneId);
+
+    if(quantityInWarehouse < quantity){
+      return "Quantity of non-expired product ( item: " + itemId + " and zone: " + zoneId
+              + ") is not enough to shipping (Available: " + quantityInWarehouse + " )";
     }
     return "";
   }

@@ -90,7 +90,7 @@ public class WarehouseItemsService {
 
   public int getQuantityNonExpiredByProductAndWarehouse(Integer productId, Integer warehouseId) {
     List<WarehouseItems> warehouseItems =
-        this.getByProductAndWarehouse(productId, warehouseId);
+        this.getNonExpiredByProductAndWarehouse(productId, warehouseId);
     if (warehouseItems.isEmpty()) {
       return 0;
     }
@@ -100,6 +100,16 @@ public class WarehouseItemsService {
       total += wi.getQuantity();
     }
     return total;
+  }
+
+  public int getQuantityNonExpiredByItemAndZone(Integer itemId, Integer zoneId) {
+    WarehouseItems warehouseItems =
+            this.findByZoneAndItem(zoneId, itemId);
+    if (warehouseItems == null) {
+      return 0;
+    }
+
+    return warehouseItems.getQuantity();
   }
 
   public List<OutboundTransactionDetail> generateOutboundDetail(
@@ -158,6 +168,10 @@ public class WarehouseItemsService {
     return warehouseItemsRepository.findByZoneAndProductAndDate(zoneId, productId, date);
   }
 
+  public WarehouseItems findByZoneAndItem(Integer zoneId, Integer itemId){
+    return warehouseItemsRepository.findByZoneIdAndItemId(zoneId,itemId);
+  }
+
   public WarehouseItems addToZone(
       Integer zoneId, Integer productId, LocalDate expireDate, Integer quantity) {
     WarehouseItems wi = this.findByZoneAndProductAndDate(zoneId, productId, expireDate);
@@ -168,6 +182,22 @@ public class WarehouseItemsService {
       new_wi.setZone_id(zoneId);
       new_wi.setItem_id(item.getId());
       new_wi.setQuantity(quantity);
+      return warehouseItemsRepository.save(new_wi);  //DONE
+    }
+
+    wi.setQuantity(wi.getQuantity() + quantity);
+    return warehouseItemsRepository.save(wi);
+  }
+
+  public WarehouseItems addItemToZone(Integer zoneId, Integer itemId, Integer quantity){
+    WarehouseItems wi = this.findByZoneAndItem(zoneId, itemId);
+
+    if (wi == null) {
+      WarehouseItems new_wi = new WarehouseItems();
+      new_wi.setZone_id(zoneId);
+      new_wi.setItem_id(itemId);
+      new_wi.setQuantity(quantity);
+      new_wi.setIsdeleted(false);
       return warehouseItemsRepository.save(new_wi);  //DONE
     }
 
@@ -195,4 +225,20 @@ public class WarehouseItemsService {
     }
   }
 
+  public WarehouseItems removeItemToZone(Integer zoneId, Integer itemId, Integer quantity){
+    WarehouseItems wi = this.findByZoneAndItem(zoneId, itemId);
+    if(wi == null){
+      return null;//Nothing to remove
+    }
+    wi.setQuantity(wi.getQuantity() - quantity);
+    if(wi.getQuantity() < 0){
+      return null; //Not valid
+    }
+    if (wi.getQuantity() == 0) {
+      warehouseItemsRepository.delete(wi);
+      return null;
+    } else {
+      return warehouseItemsRepository.save(wi);
+    }
+  }
 }

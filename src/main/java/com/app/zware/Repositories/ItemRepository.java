@@ -22,6 +22,8 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
   @Query(value = "SELECT * FROM items i WHERE i.product_id = ?1 AND i.isdeleted = 0", nativeQuery = true)
   List<Item> findByProductId(Integer id);
 
+
+
   @Query("SELECT CASE WHEN COUNT(id) > 0 THEN true ELSE false END FROM items i WHERE i.id = ?1 AND i.isdeleted = false")
   boolean existsByIdAndIsDeletedFalse(Integer id);
 
