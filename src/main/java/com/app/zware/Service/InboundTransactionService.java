@@ -33,7 +33,6 @@ public class InboundTransactionService {
     inboundTransaction.setMaker_id(transaction.getMaker_id());
     inboundTransaction.setStatus(transaction.getStatus());
     inboundTransaction.setSource(transaction.getSource());
-    inboundTransaction.setExternal_source(transaction.getExternal_source());
     return repository.save(inboundTransaction);
 
   }
@@ -52,8 +51,6 @@ public class InboundTransactionService {
     Optional.ofNullable(newTransaction.getMaker_id()).ifPresent(oldTransaction::setMaker_id);
     Optional.ofNullable(newTransaction.getStatus()).ifPresent(oldTransaction::setStatus);
     Optional.ofNullable(newTransaction.getSource()).ifPresent(oldTransaction::setSource);
-    Optional.ofNullable(newTransaction.getExternal_source())
-        .ifPresent(oldTransaction::setExternal_source);
 
     return oldTransaction; //has been UPDATED
   }
@@ -62,15 +59,10 @@ public class InboundTransactionService {
     InboundTransaction inboundTransaction = getById(id);
     inboundTransaction.setIsdeleted(true);
     repository.save(inboundTransaction);
-
     //repository.deleteById(id);
   }
 
-  public List<InboundTransactionDetail> getInboundDetailsByTransactionId(Integer transactionId) {
-    return inboundTransactionDetailRepository.findByInboundTransactionId(transactionId);
-  }
-
-  public List<InboundTransaction> getInboundByWarehouseId(Integer warehouseId){
-    return repository.getInboundTransactionById(warehouseId);
+  public List<InboundTransaction> getByWarehouse(Integer warehouseId){
+    return repository.findByWarehouse(warehouseId);
   }
 }

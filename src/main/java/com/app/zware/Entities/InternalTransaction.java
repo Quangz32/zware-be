@@ -7,17 +7,16 @@ import jakarta.persistence.Id;
 import java.time.LocalDate;
 import lombok.Data;
 
-@Entity(name = "outboundtransactions")
 @Data
-public class OutboundTransaction {
-
+@Entity(name="internaltransactions")
+public class InternalTransaction {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer id;
-  private Integer warehouse_id;
+  private String type;
+  private Integer source_warehouse; //warehouse_id
+  private Integer destination_warehouse ; //warehouse_id
   private LocalDate date;
-  private Integer maker_id;
-  private String status;
-  private String destination;
-  private Boolean isdeleted = false;
+  private Integer maker_id; //user_id
+  private String status; //pending, shipping, completed, canceled
 }

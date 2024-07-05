@@ -4,20 +4,17 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import java.time.LocalDate;
 import lombok.Data;
 
-@Entity(name = "outboundtransactions")
+@Entity(name = "internaltransactiondetails")
 @Data
-public class OutboundTransaction {
-
+public class InternalTransactionDetail {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Integer id;
-  private Integer warehouse_id;
-  private LocalDate date;
-  private Integer maker_id;
-  private String status;
-  private String destination;
-  private Boolean isdeleted = false;
+  private Integer transaction_id;
+  private Integer source_zone; //zone_id
+  private Integer destination_zone; //zone_id
+  private Integer item_id;
+  private Integer quantity;
 }

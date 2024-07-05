@@ -81,20 +81,18 @@ CREATE TABLE WarehouseItems (
     FOREIGN KEY (item_id) REFERENCES Items(id) ON DELETE SET NULL
 );
 
--- Table: OutboundTransactions
 CREATE TABLE OutboundTransactions (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    warehouse_id INT,
     date DATE,
     maker_id INT,
     status VARCHAR(50),
-    destination INT NULL,
-    external_destination VARCHAR(255),
+    destination VARCHAR(255),
     isdeleted BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (maker_id) REFERENCES Users(id) ON DELETE SET NULL,
-    FOREIGN KEY (destination) REFERENCES Warehouses(id) ON DELETE SET NULL
+    FOREIGN KEY (warehouse_id) REFERENCES Warehouses(id) ON DELETE SET NULL,
+    FOREIGN KEY (maker_id) REFERENCES Users(id) ON DELETE SET NULL
 );
 
--- Table: OutboundTransactionDetails
 CREATE TABLE OutboundTransactionDetails (
     id INT AUTO_INCREMENT PRIMARY KEY,
     transaction_id INT,
@@ -109,14 +107,14 @@ CREATE TABLE OutboundTransactionDetails (
 -- Table: InboundTransactions
 CREATE TABLE InboundTransactions (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    warehouse_id INT,
     date DATE,
     maker_id INT,
     status VARCHAR(50),
-    source INT NULL,
-    external_source VARCHAR(255),
+    source VARCHAR(255),
     isdeleted BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (maker_id) REFERENCES Users(id) ON DELETE SET NULL,
-    FOREIGN KEY (source) REFERENCES Warehouses(id) ON DELETE SET NULL
+    FOREIGN KEY (warehouse_id) REFERENCES Warehouses(id) ON DELETE SET NULL,
+    FOREIGN KEY (maker_id) REFERENCES Users(id) ON DELETE SET NULL
 );
 
 -- Table: InboundTransactionDetails
@@ -129,6 +127,32 @@ CREATE TABLE InboundTransactionDetails (
     FOREIGN KEY (transaction_id) REFERENCES InboundTransactions(id) ON DELETE SET NULL,
     FOREIGN KEY (item_id) REFERENCES Items(id) ON DELETE SET NULL,
     FOREIGN KEY (zone_id) REFERENCES WarehouseZones(id) ON DELETE SET NULL
+);
+
+CREATE TABLE InternalTransactions (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  type VARCHAR(10), -- "inbound" / "outbound"
+  source_warehouse INT,
+  destination_warehouse INT,
+  date DATE,
+  maker_id INT,
+  status VARCHAR(255),
+  FOREIGN KEY (source_warehouse) REFERENCES Warehouses (id),
+  FOREIGN KEY (destination_warehouse) REFERENCES Warehouses (id),
+  FOREIGN KEY (maker_id) REFERENCES Users (id)
+);
+
+CREATE TABLE InternalTransactionDetails (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  transaction_id INT,
+  source_zone INT,
+  destination_zone INT,
+  item_id INT,
+  quantity INT,
+  FOREIGN KEY (transaction_id) REFERENCES InternalTransactions (id),
+  FOREIGN KEY (source_zone) REFERENCES WarehouseZones (id),
+  FOREIGN KEY (destination_zone) REFERENCES WarehouseZones (id),
+  FOREIGN KEY (item_id) REFERENCES Items (id)
 );
 
 -- Table: GoodsDisposal
@@ -147,29 +171,14 @@ CREATE TABLE GoodsDisposal (
 CREATE TABLE DisposedGoods (
     id INT AUTO_INCREMENT PRIMARY KEY,
     disposal_id INT,
+    zone_id INT,
     item_id INT,
     quantity INT,
     reason VARCHAR(255),
     FOREIGN KEY (disposal_id) REFERENCES GoodsDisposal(id) ON DELETE SET NULL,
+    FOREIGN KEY (zone_id) REFERENCES WarehouseZones(id) ON DELETE SET NULL,
     FOREIGN KEY (item_id) REFERENCES Items(id) ON DELETE SET NULL
 );
-
--- Add warehouse_id column to InboundTransactions
-ALTER TABLE InboundTransactions
-ADD warehouse_id INT;
-
--- Add warehouse_id column to OutboundTransactions
-ALTER TABLE OutboundTransactions
-ADD warehouse_id INT;
-
-
--- Add foreign key constraint to InboundTransactions
-ALTER TABLE InboundTransactions
-ADD FOREIGN KEY (warehouse_id) REFERENCES Warehouses(id) ON DELETE SET NULL;
-
--- Add foreign key constraint to OutboundTransactions
-ALTER TABLE OutboundTransactions
-ADD FOREIGN KEY (warehouse_id) REFERENCES Warehouses(id) ON DELETE SET NULL;
 
 -- Insert data into Warehouses
 INSERT INTO Warehouses (name, address) VALUES
@@ -313,53 +322,3 @@ INSERT INTO WarehouseItems (zone_id, item_id, quantity, isdeleted) VALUES
 
 
 
-
--- Insert data into InboundTransactions
-INSERT INTO InboundTransactions (date, maker_id, status, source, external_source, warehouse_id) VALUES
-('2024-06-01', 1, 'pending', NULL, 'External Supplier A', 1),
-('2024-06-05', 2, 'processing', NULL, 'External Supplier B', 2),
-('2024-06-10', 3, 'done', NULL, 'External Supplier C', 3),
-('2024-06-15', 4, 'cancel', NULL, 'External Supplier D', 1);
-
--- Insert data into InboundTransactionDetails
-INSERT INTO InboundTransactionDetails (transaction_id, item_id, quantity, zone_id) VALUES
-(1, 1, 50, 1),
-(1, 2, 30, 1),
-(2, 3, 20, 3),
-(2, 4, 40, 4),
-(3, 5, 60, 5),
-(3, 6, 70, 6),
-(4, 7, 80, 1),
-(4, 8, 90, 2);
-
--- Insert data into OutboundTransactions
-INSERT INTO OutboundTransactions (date, maker_id, status, destination, external_destination, warehouse_id) VALUES
-('2024-06-01', 1, 'pending', 2, NULL, 1),
-('2024-06-05', 2, 'processing', 3, NULL, 2),
-('2024-06-10', 3, 'done', 1, NULL, 3),
-('2024-06-15', 4, 'cancel', 2, NULL, 1);
-
--- Insert data into OutboundTransactionDetails
-INSERT INTO OutboundTransactionDetails (transaction_id, item_id, quantity, zone_id) VALUES
-(1, 1, 20, 1),
-(1, 2, 10, 1),
-(2, 3, 30, 3),
-(2, 4, 25, 4),
-(3, 5, 35, 5),
-(3, 6, 45, 6),
-(4, 7, 55, 1),
-(4, 8, 65, 2);
-
--- Insert data into GoodsDisposal
-INSERT INTO GoodsDisposal (warehouse_id, maker_id, date, status) VALUES
-(1, 2, '2024-01-25', 'Disposed'),
-(2, 3, '2024-02-28', 'Disposed'),
-(3, 4, '2024-03-30', 'Pending');
-
--- Insert data into DisposedGoods
-INSERT INTO DisposedGoods (disposal_id, item_id, quantity, reason) VALUES
-(1, 1, 5, 'Damaged'),
-(1, 2, 10, 'Expired'),
-(2, 3, 15, 'Damaged'),
-(2, 4, 20, 'Expired'),
-(3, 5, 25, 'Damaged');

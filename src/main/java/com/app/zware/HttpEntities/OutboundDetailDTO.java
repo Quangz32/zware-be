@@ -8,8 +8,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class OutboundDetailDTO {
   private Integer product_id;
-//  private LocalDate expire_date;
   private Integer quantity;
-//  private Integer zone_id;  AUTO
 
+  //transaction_id, item_id, zone_id: Auto
 }
