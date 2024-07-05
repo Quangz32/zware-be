@@ -131,7 +131,7 @@ public class InboundTransactionValidator {
       return "Maker id is not valid";
     }
 
-    List<String> statusList = Arrays.asList("pending", "processing", "completed", "canceled");
+    List<String> statusList = Arrays.asList("pending", "shipping", "completed", "canceled");
     if (!statusList.contains(inboundTransaction.getStatus())) {
       return "Status is not valid";
     }
@@ -151,6 +151,36 @@ public class InboundTransactionValidator {
 
   public String checkDelete(Integer id) {
     return checkGet(id);
+  }
+
+
+  // checkStatus
+  // Change status
+  // Make Sure pending -> shipping or canceled
+  // shipping -> completed or canceled
+
+  public String checkStatus (InboundTransaction transaction,String newStatus){
+    String currentStatus = transaction.getStatus();
+
+    if (currentStatus.equals("pending")){
+      if(newStatus.equals("shipping")||newStatus.equals("canceled")){
+        return "";
+      }
+    }
+
+    if(currentStatus.equals("shipping")){
+      if (newStatus.equals("completed")||newStatus.equals("canceled")){
+        return "";
+      }
+    }
+
+    if(currentStatus.equals("completed")||currentStatus.equals("canceled")){
+      return "Cannot change status from "+currentStatus;
+    }
+
+    return "Invalid status transition from "+currentStatus+" to "+newStatus;
+
+
   }
 
 }

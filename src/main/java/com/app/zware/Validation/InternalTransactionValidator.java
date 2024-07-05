@@ -96,7 +96,7 @@ public class InternalTransactionValidator {
     }
 
     if (detailDTO.getDestination_zone() != null &&
-        zoneService.existById(detailDTO.getDestination_zone())) {
+        !zoneService.existById(detailDTO.getDestination_zone())) {
       return "Destination_zone is not valid [" + detailDTO.getDestination_zone() + "]";
     }
 

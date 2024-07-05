@@ -20,4 +20,8 @@ public class InternalTransactionDetailService {
     return internalTransactionDetailRepository.save(detail);
   }
 
+  public List<InternalTransactionDetail> findByTransactionId(Integer id){
+     return internalTransactionDetailRepository.findByTransactionId(id);
+  }
+
 }

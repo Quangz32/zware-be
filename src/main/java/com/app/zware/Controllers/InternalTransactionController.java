@@ -1,17 +1,11 @@
 package com.app.zware.Controllers;
 
-import com.app.zware.Entities.InternalTransaction;
-import com.app.zware.Entities.InternalTransactionDetail;
-import com.app.zware.Entities.OutboundTransactionDetail;
-import com.app.zware.Entities.User;
+import com.app.zware.Entities.*;
 import com.app.zware.HttpEntities.CustomResponse;
 import com.app.zware.HttpEntities.InternalDetailDTO;
 import com.app.zware.HttpEntities.InternalTransactionDTO;
 import com.app.zware.HttpEntities.OutboundDetailDTO;
-import com.app.zware.Service.InternalTransactionDetailService;
-import com.app.zware.Service.InternalTransactionService;
-import com.app.zware.Service.OutboundTransactionService;
-import com.app.zware.Service.UserService;
+import com.app.zware.Service.*;
 import com.app.zware.Validation.InternalTransactionValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
@@ -19,11 +13,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/internal_transactions")
@@ -42,6 +32,12 @@ public class InternalTransactionController {
 
   @Autowired
   InternalTransactionDetailService internalTransactionDetailService;
+
+  @Autowired
+  WarehouseItemsService warehouseItemsService;
+
+  @Autowired
+  ItemService itemService;
 
 
   @GetMapping()
@@ -120,4 +116,98 @@ public class InternalTransactionController {
     customResponse.setAll(true, "Create internal transaction success", savedTransaction);
     return ResponseEntity.ok(customResponse);
   }
+
+  @PutMapping("{id}/change_status")
+  public ResponseEntity<?> changeStatus (
+          @PathVariable Integer id,
+          @RequestBody InternalTransaction updatedTransaction,
+          HttpServletRequest request){
+
+    // response
+    CustomResponse customResponse = new CustomResponse();
+
+    InternalTransaction transaction = internalTransactionService.findById(id);
+    if(transaction==null){
+      customResponse.setAll(false,"Transaction not found",null);
+      return new ResponseEntity<>(customResponse,HttpStatus.NOT_FOUND);
+    }
+
+    //Authorization
+    User requestMaker = userService.getRequestMaker(request);
+    boolean isAdmin = requestMaker.getRole().equals("admin");
+    boolean isSourceOwner = requestMaker.getWarehouse_id().equals(transaction.getSource_warehouse());
+    boolean isDestinationOwner = requestMaker.getWarehouse_id().equals(transaction.getDestination_warehouse());
+
+    String currentStatus = transaction.getStatus();
+    String newStatus = updatedTransaction.getStatus();
+
+    if (currentStatus.equals("pending")) {
+      if (!newStatus.equals("shipping") && !newStatus.equals("canceled")) {
+        customResponse.setAll(false, "Invalid status transition", null);
+        return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+      }
+      if (newStatus.equals("shipping") && !isAdmin && !isSourceOwner) {
+        customResponse.setAll(false, "You are not allowed to change status to shipping", null);
+        return new ResponseEntity<>(customResponse, HttpStatus.UNAUTHORIZED);
+      }
+    } else if (currentStatus.equals("shipping")) {
+      if (!newStatus.equals("completed") && !newStatus.equals("canceled")) {
+        customResponse.setAll(false, "Invalid status transition", null);
+        return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+      }
+      if ((newStatus.equals("canceled") || newStatus.equals("completed")) &&
+              !isAdmin && !isSourceOwner && !isDestinationOwner) {
+        customResponse.setAll(false, "You are not allowed to change status to canceled or completed", null);
+        return new ResponseEntity<>(customResponse, HttpStatus.UNAUTHORIZED);
+      }
+    } else {
+      customResponse.setAll(false, "Invalid current status", null);
+      return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    List<InternalTransactionDetail> details = internalTransactionDetailService.findByTransactionId(transaction.getId());
+
+    if(newStatus.equals("shipping")){
+      for(InternalTransactionDetail detail : details){
+
+        Item item = itemService.getItemById(detail.getItem_id());
+        Integer productId = item.getProduct_id();
+        LocalDate expireDate =  item.getExpire_date();
+        warehouseItemsService.removeFromZone(detail.getSource_zone(),productId,expireDate,detail.getQuantity());
+      }
+    } else if (newStatus.equals("canceled")) {
+       if(currentStatus.equals("shipping")){
+         for (InternalTransactionDetail detail : details){
+             Item item = itemService.getItemById(detail.getItem_id());
+             Integer productId = item.getProduct_id();
+             LocalDate expireDate =  item.getExpire_date();
+             warehouseItemsService.addToZone(detail.getSource_zone(),productId,expireDate,detail.getQuantity());
+
+         }
+       }
+
+    } else if (newStatus.equals("completed")) {
+        if (currentStatus.equals("shipping")){
+          for (InternalTransactionDetail detail : details){
+            Item item = itemService.getItemById(detail.getItem_id());
+            Integer productId = item.getProduct_id();
+            LocalDate expireDate =  item.getExpire_date();
+            warehouseItemsService.addToZone(detail.getDestination_zone(),productId,expireDate,detail.getQuantity());
+          }
+        }
+
+    }
+    // Update status
+    transaction.setStatus(newStatus);
+    internalTransactionService.save(transaction);
+
+    customResponse.setAll(true, "Status changed successfully", transaction);
+    return ResponseEntity.ok(customResponse);
+  }
+
+
+
+
+
+
 }
