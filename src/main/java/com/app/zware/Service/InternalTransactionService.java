@@ -18,4 +18,8 @@ public class InternalTransactionService {
   public InternalTransaction save(InternalTransaction transaction){
     return internalTransactionRepository.save(transaction);
   }
+
+  public InternalTransaction findById(Integer id){
+    return internalTransactionRepository.findById(id).orElse(null);
+  }
 }
