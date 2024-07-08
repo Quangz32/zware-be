@@ -3,9 +3,11 @@ package com.app.zware.Controllers;
 import com.app.zware.Entities.Product;
 import com.app.zware.Entities.User;
 import com.app.zware.HttpEntities.CustomResponse;
+import com.app.zware.HttpEntities.ProductNonExpiredDTO;
 import com.app.zware.Service.ProductService;
 import com.app.zware.Service.UserService;
 import com.app.zware.Validation.ProductValidator;
+import com.app.zware.Validation.WarehouseValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.List;
@@ -33,6 +35,9 @@ public class ProductController {
 
   @Autowired
   ProductValidator productValidator;
+
+  @Autowired
+  WarehouseValidator warehouseValidator;
 
   @Autowired
   UserService userService;
@@ -154,6 +159,30 @@ public class ProductController {
       customResponse.setAll(true, "Product has been updated", updatedProduct);
       return new ResponseEntity<>(customResponse, HttpStatus.OK);
     }
+  }
+
+  @GetMapping("/non_expire_quantity")
+  public ResponseEntity<?> getNonExpireQuantityByWarehouse(@RequestParam("warehouse_id") Integer warehouseId) {
+    //response
+    CustomResponse customResponse = new CustomResponse();
+
+    //Authorization: all
+
+    //validate
+    String checkedMessage = warehouseValidator.checkGet(warehouseId);
+    if(!checkedMessage.isEmpty()) {
+      customResponse.setAll(false, checkedMessage, null);
+      return new ResponseEntity<>(customResponse,HttpStatus.BAD_REQUEST);
+    }
+
+    List<ProductNonExpiredDTO> productQuantities = productService.getNonExpireQuantityByWarehouse(warehouseId);
+
+    if (productQuantities.isEmpty()) {
+      customResponse.setAll(false, "No products found or all products are expired in the given warehouse", null);
+      return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+    }
+    customResponse.setAll(true, "Non-expired product quantities retrieved successfully", productQuantities);
+    return new ResponseEntity<>(customResponse, HttpStatus.OK);
   }
 
   @PostMapping("/{productid}/image")

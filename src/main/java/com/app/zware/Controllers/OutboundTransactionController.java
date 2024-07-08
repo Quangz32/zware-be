@@ -191,7 +191,7 @@ public class OutboundTransactionController {
 
   @PutMapping("/{id}/change_status")
   public ResponseEntity<?> update(@PathVariable("id") Integer id,
-                                  @RequestBody Map<String, String> requestBody,
+                                  @RequestBody Map<String, String> statusUpdated,
                                   HttpServletRequest userRequest) {
     // response
     CustomResponse customResponse = new CustomResponse();
@@ -213,7 +213,7 @@ public class OutboundTransactionController {
     }
 
     // extract and validate status
-    String status = requestBody.get("status");
+    String status = statusUpdated.get("status");
     if (status == null || status.isEmpty()) {
       customResponse.setAll(false, "Status is required", null);
       return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
@@ -256,6 +256,7 @@ public class OutboundTransactionController {
       }
       messageResponse = "The outbound transaction has been shipping. Products are being prepared";
     }
+    //status ="completed"
     if ("completed".equals(transaction.getStatus())) {
       messageResponse = "The outbound transaction was completed";
     }
@@ -263,10 +264,10 @@ public class OutboundTransactionController {
     //status ="canceled"
     if ("canceled".equals(transaction.getStatus())) {
       for (OutboundTransactionDetail detail : detailList) {
-        // remove item
+        // add item
         warehouseItemsService.addItemToZone(detail.getZone_id(), detail.getItem_id(), detail.getQuantity());
       }
-      messageResponse = "Transaction has been cancelled. The product will be returned to the warehouse";
+      messageResponse = "Transaction has been canceled. The product will be returned to the warehouse";
     }
 
     customResponse.setAll(true, messageResponse, null);

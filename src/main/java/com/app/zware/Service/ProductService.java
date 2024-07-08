@@ -1,7 +1,10 @@
 package com.app.zware.Service;
 
 
+import com.app.zware.Entities.Item;
 import com.app.zware.Entities.Product;
+import com.app.zware.HttpEntities.ProductNonExpiredDTO;
+import com.app.zware.Repositories.ItemRepository;
 import com.app.zware.Repositories.ProductRepository;
 import java.io.File;
 import java.io.IOException;
@@ -9,9 +12,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+
+import com.app.zware.Repositories.WarehouseItemsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -23,6 +29,13 @@ public class ProductService {
 
   @Autowired
   ProductRepository productRepository;
+
+  @Autowired
+  WarehouseItemsRepository warehouseItemsRepository;
+
+  @Autowired
+  ItemRepository itemRepository;
+
   @Value("${image.storage.directory}")
   private String storageDirectory;
 
@@ -65,6 +78,26 @@ public class ProductService {
 
     oldProduct.setIsdeleted(false);
     return oldProduct;
+  }
+
+  public List<ProductNonExpiredDTO> getNonExpireQuantityByWarehouse(Integer warehouseId) {
+    //list product non-expired
+    List<ProductNonExpiredDTO> productNonExpiredDTOS = new ArrayList<>();
+
+    //get list product non expired by warehouse id
+    List<Product> productList = productRepository.findNonExpiredProductsByWarehouse(warehouseId);
+    if(productList.isEmpty()){
+      return null;
+    }
+    for (Product product : productList){
+      ProductNonExpiredDTO expiredDTO = new ProductNonExpiredDTO();
+      Integer quantityProductNonExpired = warehouseItemsRepository.findTotalQuantityByProductIdAndWarehouse(product.getId(), warehouseId);
+      expiredDTO.setProductId(product.getId());
+      expiredDTO.setQuantity(quantityProductNonExpired);
+      productNonExpiredDTOS.add(expiredDTO);
+    }
+
+    return productNonExpiredDTOS;
   }
 
   public Product update(Product product) {

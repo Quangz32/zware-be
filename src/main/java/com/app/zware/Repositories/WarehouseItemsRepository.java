@@ -90,5 +90,9 @@ public interface WarehouseItemsRepository extends JpaRepository<WarehouseItems, 
       + "LIMIT 1", nativeQuery = true)
   WarehouseItems findByZoneAndProductAndDate(Integer zoneId, Integer productId, LocalDate date);
 
+  @Query(value = "SELECT COALESCE(SUM(wi.quantity), 0) FROM warehouseitems wi JOIN items i ON wi.item_id = i.id \n" +
+          "          JOIN warehousezones wz ON wz.id = wi.zone_id\n" +
+          "          WHERE i.product_id = ?1 AND wz.warehouse_id= ?2 AND i.expire_date > CURRENT_DATE AND wi.isdeleted = false AND i.isdeleted = false", nativeQuery = true)
+  Integer findTotalQuantityByProductIdAndWarehouse(Integer productId, Integer warehouseId);
 
 }

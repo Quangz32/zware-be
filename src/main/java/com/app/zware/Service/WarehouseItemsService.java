@@ -117,7 +117,7 @@ public class WarehouseItemsService {
   ) {
 
     //this list is sorted by expire_date and quantity
-    List<WarehouseItems> warehouseItemList = this.getByProductAndWarehouse(productId, warehouseId);
+    List<WarehouseItems> warehouseItemList = this.getNonExpiredByProductAndWarehouse(productId, warehouseId);
 //    System.out.println(warehouseItems.toString());
 
     List<OutboundTransactionDetail> detailList = new ArrayList<>();

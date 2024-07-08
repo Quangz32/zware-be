@@ -152,7 +152,7 @@ public class OutBoundTransactionValidator {
     return outboundTransactionRepository.existsByIdAndIsDeletedFalse(id);
   }
 
-  public String checkQuantity(Integer itemId, Integer zoneId, Integer quantity) {
+  public String checkQuantity(Integer zoneId, Integer itemId, Integer quantity) {
     Integer quantityInWarehouse = warehouseItemsService.getQuantityNonExpiredByItemAndZone(itemId, zoneId);
 
     if(quantityInWarehouse < quantity){
