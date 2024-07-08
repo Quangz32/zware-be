@@ -10,6 +10,8 @@ import com.app.zware.Validation.InternalTransactionValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -120,7 +122,7 @@ public class InternalTransactionController {
   @PutMapping("{id}/change_status")
   public ResponseEntity<?> changeStatus (
           @PathVariable Integer id,
-          @RequestBody InternalTransaction updatedTransaction,
+          @RequestBody Map<String,String> requestBody,
           HttpServletRequest request){
 
     // response
@@ -133,13 +135,22 @@ public class InternalTransactionController {
     }
 
     //Authorization
+//    User requestMaker = userService.getRequestMaker(request);
+//    boolean isAdmin = requestMaker.getRole().equals("admin");
+//    boolean isSourceOwner = requestMaker.getWarehouse_id().equals(transaction.getSource_warehouse());
+//    boolean isDestinationOwner = requestMaker.getWarehouse_id().equals(transaction.getDestination_warehouse());
+
     User requestMaker = userService.getRequestMaker(request);
-    boolean isAdmin = requestMaker.getRole().equals("admin");
-    boolean isSourceOwner = requestMaker.getWarehouse_id().equals(transaction.getSource_warehouse());
-    boolean isDestinationOwner = requestMaker.getWarehouse_id().equals(transaction.getDestination_warehouse());
+    boolean isAdmin = "admin".equals(requestMaker.getRole());
+
+    boolean isSourceOwner = !isAdmin && requestMaker.getWarehouse_id() != null &&
+            requestMaker.getWarehouse_id().equals(transaction.getSource_warehouse());
+
+    boolean isDestinationOwner = !isAdmin && requestMaker.getWarehouse_id() != null &&
+            requestMaker.getWarehouse_id().equals(transaction.getDestination_warehouse());
 
     String currentStatus = transaction.getStatus();
-    String newStatus = updatedTransaction.getStatus();
+    String newStatus = requestBody.get("status");
 
     if (currentStatus.equals("pending")) {
       if (!newStatus.equals("shipping") && !newStatus.equals("canceled")) {
@@ -181,7 +192,12 @@ public class InternalTransactionController {
              Item item = itemService.getItemById(detail.getItem_id());
              Integer productId = item.getProduct_id();
              LocalDate expireDate =  item.getExpire_date();
-             warehouseItemsService.addToZone(detail.getSource_zone(),productId,expireDate,detail.getQuantity());
+             WarehouseItems updateWi = warehouseItemsService.addToZone(detail.getSource_zone(),productId,expireDate,detail.getQuantity());
+             // check quantity in source
+             if(updateWi==null){
+               customResponse.setAll(false, "Source does not have enough quantity", null);
+               return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+             }
 
          }
        }

@@ -20,6 +20,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -267,11 +269,13 @@ public class InboundTransactionController {
 
   @PutMapping("{id}/changeStatus")
   public ResponseEntity<?> changeStatus (@PathVariable Integer id,
-                                         @RequestBody InboundTransaction inboundTransaction,
+                                         @RequestBody Map<String, String> requestBody,
                                          HttpServletRequest request){
 
     // response
     CustomResponse customResponse = new CustomResponse();
+
+
 
     // Authorization
     User requestMaker = userService.getRequestMaker(request);
@@ -288,19 +292,25 @@ public class InboundTransactionController {
       customResponse.setAll(false,checkId,null);
       return new ResponseEntity<>(customResponse,HttpStatus.BAD_REQUEST);
     }
+    // Status
+    String status = requestBody.get("status");
+    if (status==null||status.isEmpty()){
+      customResponse.setAll(false,"Status is required",null);
+      return new ResponseEntity<>(customResponse,HttpStatus.BAD_REQUEST);
+    }
 
     // Check Status
-    String checkStatus = validator.checkStatus(transaction,inboundTransaction.getStatus());
+    String checkStatus = validator.checkStatus(transaction,status);
     if(!checkStatus.isEmpty()){
       customResponse.setAll(false,checkStatus,null);
       return new ResponseEntity<>(customResponse,HttpStatus.BAD_REQUEST);
 
     }
     // update status
-    transaction.setStatus(inboundTransaction.getStatus());
+    transaction.setStatus(status);
     service.update(transaction);
 
-    if("completed".equals(inboundTransaction.getStatus())){
+    if("completed".equals(status)){
       List<InboundTransactionDetail> details = inboundTransactionDetailService.findByInboundTransactionId(transaction.getId());
        for (InboundTransactionDetail detail: details){
          Integer zoneId = detail.getZone_id();
