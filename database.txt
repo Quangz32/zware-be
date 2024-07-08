@@ -188,13 +188,13 @@ INSERT INTO Warehouses (name, address) VALUES
 
 -- Insert data into Users
 INSERT INTO Users (email, password, name, role, date_of_birth, phone, gender, avatar, warehouse_id) VALUES
-('admin@gmail.com','$2a$10$gGt3geJe5eXO6.QpOfrKYeBwyaYfPI71lGXOw242ax1BD9j8MVYHO','Admin','admin',NULL, NULL, NULL, NULL, NULL),
+('admin@gmail.com','$2a$10$gGt3geJe5eXO6.QpOfrKYeBwyaYfPI71lGXOw242ax1BD9j8MVYHO','Admin','admin',NULL, NULL, NULL, '20240708152547.jpeg', NULL),
 ( 'hai@gmail.com', '$2a$10$9cjK2lNEetSJZ9Y57niiP.LyQHmYIQGio/UicKnu9EIkoKBi7E0hW', 'Hai', 'manager', NULL, NULL, NULL, NULL, 1),
-( 'quang@gmail.com', '$2a$10$NgvBZt65aQq9WrIuF3HvNeCWiVH4wXcvSEKvJ/gCMLKobPKSiWsaK', 'Quangz', 'manager', NULL, NULL, NULL, NULL, 2),
-( 'quan@gmail.com', '$2a$10$xgMmEFKYr/PZF4bqxQRXcu64ozUY6aOF5YMIP75EQIi/w7KdeJcm.', 'Quan', 'manager', NULL, NULL, NULL, NULL, 3),
+( 'quang@gmail.com', '$2a$10$NgvBZt65aQq9WrIuF3HvNeCWiVH4wXcvSEKvJ/gCMLKobPKSiWsaK', 'Quangz', 'manager', NULL, NULL, NULL, '20240708153122.jpeg', 2),
+( 'quan@gmail.com', '$2a$10$xgMmEFKYr/PZF4bqxQRXcu64ozUY6aOF5YMIP75EQIi/w7KdeJcm.', 'Quan', 'manager', NULL, NULL, NULL, '20240708153130.png', 3),
 ( 'hang@gmail.com', '$2a$10$ET3CJR4rjMgXqt6yzt3lCu9QcMX4.VW9NnmlXIER75sUf7uu0wISu', 'Hang', 'manager', NULL, NULL, NULL, NULL, 1),
 ( 'long@gmail.com', '$2a$10$hy83q/ZvTa7kivSmiw2WeeL3japDuAAoo4hbZca4ega4Kwhzux7WW', 'Long', 'manager', NULL, NULL, NULL, NULL, 2),
-( 'meo@gmail.com', '$2a$10$3Y0wGDE6A7lCggAjAGxO0uaIknPZn9L/m5k5llVn6twiJyDbDMfxO', 'Meo', 'manager', NULL, NULL, NULL, NULL, 3);
+( 'meo@gmail.com', '$2a$10$3Y0wGDE6A7lCggAjAGxO0uaIknPZn9L/m5k5llVn6twiJyDbDMfxO', 'Meo', 'manager', NULL, NULL, NULL, '20240708153140.png', 3);
 
 -- Insert data into WarehouseZones
 INSERT INTO WarehouseZones (warehouse_id, name) VALUES
@@ -215,16 +215,16 @@ INSERT INTO Categories (name) VALUES
 
 -- Insert data into Products
 INSERT INTO Products (name, category_id, supplier, measure_unit, image) VALUES
-('Rice', 1, 'ABC Supplier', 'kg', NULL),
-('Chicken', 1, 'XYZ Supplier', 'kg', null),
-('Apple', 1, 'DEF Supplier', 'piece', null),
-('Coca-Cola', 2, 'Coca-Cola Company', 'can', null),
-('Orange Juice', 2, 'Juice Co.', 'bottle', null),
-('Paracetamol', 3, 'Pharma Ltd.', 'tablet', null),
-('Toothpaste', 4, 'Dental Care', 'tube', null),
-('Shampoo', 4, 'Hair Products', 'bottle', null),
-('Laptop', 5, 'Tech Store', 'piece', null),
-('Headphones', 5, 'Audio Inc.', 'piece', null);
+('Rice', 1, 'ABC Supplier', 'kg', '20240708152617.jpg'),
+('Chicken', 1, 'XYZ Supplier', 'kg', '20240708152626.avif'),
+('Apple', 1, 'DEF Supplier', 'piece', '20240708152632.jpeg'),
+('Coca-Cola', 2, 'Coca-Cola Company', 'can', '20240708152638.webp'),
+('Orange Juice', 2, 'Juice Co.', 'bottle', '20240708152647.webp'),
+('Paracetamol', 3, 'Pharma Ltd.', 'tablet', '20240708152703.webp'),
+('Toothpaste', 4, 'Dental Care', 'tube', '20240708152816.jpg'),
+('Shampoo', 4, 'Hair Products', 'bottle', '20240708152824.jpg'),
+('Laptop', 5, 'Tech Store', 'piece', '20240708152856.webp'),
+('Headphones', 5, 'Audio Inc.', 'piece', '20240708152924.jpg');
 
 -- Insert data into Items
 INSERT INTO Items (product_id, expire_date) VALUES

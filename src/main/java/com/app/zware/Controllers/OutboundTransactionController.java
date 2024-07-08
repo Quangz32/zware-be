@@ -254,7 +254,7 @@ public class OutboundTransactionController {
         // remove item
         warehouseItemsService.removeItemToZone(detail.getZone_id(), detail.getItem_id(), detail.getQuantity());
       }
-      messageResponse = "The outbound transaction has been shipping. Products are being prepared";
+      messageResponse = "Products are being shipped";
     }
     //status ="completed"
     if ("completed".equals(transaction.getStatus())) {
