@@ -122,4 +122,11 @@ public class InternalTransactionValidator {
 
     return "";
   }
+
+  public String checkGet(Integer id){
+    if(!internalTransactionService.existByTransactionId(id)){
+      return "Not found TransactionID";
+    }
+    return "";
+  }
 }
