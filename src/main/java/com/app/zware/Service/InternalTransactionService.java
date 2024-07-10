@@ -28,4 +28,16 @@ public class InternalTransactionService {
   public boolean existByTransactionId(Integer id){
     return internalTransactionRepository.existByIdAndIsDeletedFalse(id);
   }
+
+    public List<InternalTransaction> getByWarehouse(Integer warehouseId) {
+      return internalTransactionRepository.findByWarehouse(warehouseId);
+    }
+
+  public List<InternalTransaction> getByDestinationId(Integer warehouseId) {
+    return internalTransactionRepository.findByDestinationId(warehouseId);
+  }
+
+  public List<InternalTransaction> getAllInboundInternal() {
+    return internalTransactionRepository.findAllInboundInternal();
+  }
 }
