@@ -80,7 +80,7 @@ public class WarehouseItemsService {
 
   public List<WarehouseItems> getByProductAndWarehouse(Integer productId,
       Integer warehouseId) {
-    return warehouseItemsRepository.findByProductAndWarehouse(productId, warehouseId);
+    return warehouseItemsRepository.findNonExpiredByProductAndWarehouse(productId, warehouseId);
   }
 
   public List<WarehouseItems> getNonExpiredByProductAndWarehouse(
