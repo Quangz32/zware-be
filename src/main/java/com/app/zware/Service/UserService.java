@@ -67,7 +67,7 @@ public class UserService {
     return userRepository.save(mergedUser);
   }
 
-  public User merge(Integer oldUserId, User newUser,boolean isAdmin) {
+  public User merge(Integer oldUserId, User newUser, boolean isAdmin) {
     User oldUser = userRepository.findById(oldUserId).orElse(null);
     if (oldUser == null) {
       return null;
@@ -82,9 +82,8 @@ public class UserService {
 //    Optional.ofNullable(newUser.getPassword()).ifPresent(oldUser::setPassword);
 //    Optional.ofNullable(newUser.getAvatar()).ifPresent(oldUser::setAvatar);
 
-
     // only admin can update warehouseId and role
-    if(isAdmin){
+    if (isAdmin) {
       Optional.ofNullable(newUser.getWarehouse_id()).ifPresent(oldUser::setWarehouse_id);
       Optional.ofNullable(newUser.getRole()).ifPresent(oldUser::setRole);
     }
@@ -100,11 +99,15 @@ public class UserService {
   }
 
   // getWarehouse By User
-  public Warehouse getWarehouseByUser(Integer id){
+  public Warehouse getWarehouseByUser(Integer id) {
     return warehouseRespository.findByUserId(id);
   }
 
   public boolean existById(Integer id) {
     return userRepository.existByIdAndIsDeletedFalse(id);
+  }
+
+  public void changePassword(Integer userId, String newHashedPassword) {
+    userRepository.updatePassword(userId, newHashedPassword);
   }
 }
