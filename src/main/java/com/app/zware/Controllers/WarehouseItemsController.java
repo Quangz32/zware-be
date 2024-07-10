@@ -1,19 +1,22 @@
 package com.app.zware.Controllers;
 
 
+import com.app.zware.Entities.Item;
 import com.app.zware.Entities.User;
 import com.app.zware.Entities.WarehouseItems;
 import com.app.zware.Entities.WarehouseZone;
 import com.app.zware.HttpEntities.CustomResponse;
+import com.app.zware.HttpEntities.InWarehouseDetailDTO;
+import com.app.zware.HttpEntities.InWarehouseTransactionDTO;
 import com.app.zware.Repositories.WarehouseZoneRespository;
+import com.app.zware.Service.ItemService;
 import com.app.zware.Service.UserService;
 import com.app.zware.Service.WarehouseItemsService;
 import com.app.zware.Service.WarehouseZoneService;
-import com.app.zware.Validation.ProductValidator;
-import com.app.zware.Validation.WarehouseItemValidator;
-import com.app.zware.Validation.WarehouseValidator;
-import com.app.zware.Validation.WarehouseZoneValidator;
+import com.app.zware.Validation.*;
 import jakarta.servlet.http.HttpServletRequest;
+
+import java.time.LocalDate;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -47,6 +50,12 @@ public class WarehouseItemsController {
 
   @Autowired
   ProductValidator productValidator;
+
+  @Autowired
+  InWarehouseTransactionValidator inWarehouseTransactionValidator;
+
+  @Autowired
+  ItemService itemService;
 
   @GetMapping("")
   public ResponseEntity<?> index() {
@@ -291,6 +300,61 @@ public class WarehouseItemsController {
     customResponse.setAll(true, "Get Warehouse Item By Product success",warehouseItemsService.findByProductId(productId));
 
     return new ResponseEntity<>(customResponse, HttpStatus.OK);
+  }
+
+  @PostMapping("/inwarehouse_transaction")
+  public ResponseEntity<?> inwarehouseTransaction(@RequestBody InWarehouseTransactionDTO inWarehouseTransactionDTO,HttpServletRequest request){
+
+    // response
+    CustomResponse customResponse = new CustomResponse();
+
+    // authorization
+
+    User userRequest = userService.getRequestMaker(request);
+    boolean isAdmin = userRequest.getRole().equals("admin");
+    boolean isAdminWithoutWarehouse = isAdmin && userRequest.getWarehouse_id() == null;
+    boolean isManagerOfWarehouse = userRequest.getWarehouse_id() != null && userRequest.getWarehouse_id().equals(inWarehouseTransactionDTO.getWarehouse_id());
+
+// Cho phép admin mà không có warehouse_id hoặc quản lý kho cụ thể
+    if (!(isAdminWithoutWarehouse || isManagerOfWarehouse)) {
+      customResponse.setAll(false, "You are not allowed", null);
+      return new ResponseEntity<>(customResponse, HttpStatus.UNAUTHORIZED);
+    }
+
+
+
+    // validator
+    String checkMessage = inWarehouseTransactionValidator.check(inWarehouseTransactionDTO);
+    if(!checkMessage.isEmpty()){
+      customResponse.setAll(false,checkMessage,null);
+      return new ResponseEntity<>(customResponse,HttpStatus.OK);
+
+    }
+
+    for (InWarehouseDetailDTO detail : inWarehouseTransactionDTO.getDetails()){
+
+     Item item = itemService.getItemById(detail.getItem_id());
+     if(item==null){
+       customResponse.setAll(false,"Item is not valid",null);
+       return new ResponseEntity<>(customResponse,HttpStatus.NOT_FOUND);
+     }
+     Integer productId = item.getProduct_id();
+     LocalDate expireDate = item.getExpire_date();
+
+
+      // Remove source zone
+      WarehouseItems removeItem = warehouseItemsService.removeFromZone(inWarehouseTransactionDTO.getSource_zone(),productId,expireDate,detail.getQuantity());
+
+      if(removeItem == null){
+        customResponse.setAll(false,"Insufficient quantity in source zone or not item in warehouse item",null);
+        return new ResponseEntity<>(customResponse,HttpStatus.FORBIDDEN);
+      }
+      // Add destination zone
+      WarehouseItems addItem = warehouseItemsService.addToZone(inWarehouseTransactionDTO.getDestination_zone(), productId,expireDate,detail.getQuantity());
+
+    }
+    customResponse.setAll(true,"InWarehouse Transaction successful!!",null);
+    return new ResponseEntity<>(customResponse,HttpStatus.OK);
   }
 
 
