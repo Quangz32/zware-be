@@ -184,11 +184,13 @@ public class InternalTransactionController {
         Item item = itemService.getItemById(detail.getItem_id());
         Integer productId = item.getProduct_id();
         LocalDate expireDate =  item.getExpire_date();
-        WarehouseItems updatedWi = warehouseItemsService.removeFromZone(detail.getSource_zone(),productId,expireDate,detail.getQuantity());
-        if (updatedWi == null) {
-          customResponse.setAll(false, "Source does not have enough quantity", null);
-          return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+        WarehouseItems sourceItem = warehouseItemsService.findByZoneAndProductAndDate(detail.getSource_zone(), productId, expireDate);
+        if (sourceItem == null || sourceItem.getQuantity() < detail.getQuantity()) {
+          customResponse.setAll(false, "Not Enough Quantity in Source Zone", null);
+          return new ResponseEntity<>(customResponse, HttpStatus.FORBIDDEN);
         }
+        warehouseItemsService.removeFromZone(detail.getSource_zone(),productId,expireDate,detail.getQuantity());
+
       }
     } else if (newStatus.equals("canceled")) {
        if(currentStatus.equals("shipping")){

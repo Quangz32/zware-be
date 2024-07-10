@@ -219,7 +219,7 @@ public class WarehouseItemsService {
     }
     if (wi.getQuantity() == 0) {
       warehouseItemsRepository.delete(wi);
-      return wi;
+      return null;
     } else {
       return warehouseItemsRepository.save(wi);
     }
