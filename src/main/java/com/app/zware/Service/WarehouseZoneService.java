@@ -60,4 +60,8 @@ public class WarehouseZoneService {
   public List<WarehouseZone> getByWarehouse(Integer warehouseId){
     return warehouseZoneRespository.findByWarehouseId(warehouseId);
   }
+
+  public WarehouseZone findByIdAndWarehouseId(Integer id,Integer warehouseId){
+    return warehouseZoneRespository.findByIdAndWarehouseId(id,warehouseId);
+  }
 }
