@@ -239,7 +239,7 @@ public class InternalTransactionController {
     String checkMessage = warehouseValidator.checkGet(warehouseId);
     if (!checkMessage.isEmpty()) {
       customResponse.setAll(false, checkMessage, null);
-      return new ResponseEntity<>(customResponse, HttpStatus.OK);
+      return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
       //finally
     }
     //Get all transaction when source or destination = warehouseID
@@ -257,7 +257,7 @@ public class InternalTransactionController {
       String checkMessage = warehouseValidator.checkGet(destinationId);
       if (!checkMessage.isEmpty()) {
         customResponse.setAll(false, checkMessage, null);
-        return new ResponseEntity<>(customResponse, HttpStatus.OK);
+        return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
         //finally
       }
       //Get all transaction when source or destination = warehouseID
@@ -278,13 +278,34 @@ public class InternalTransactionController {
 //      return new ResponseEntity<>(customResponse, HttpStatus.OK);
 //      //finally
 //    }
-    //Get all transaction when source or destination = warehouseID
     customResponse.setAll(true, "Get Inbound Internal Transaction success",
             internalTransactionService.getAllInboundInternal());
 
     return new ResponseEntity<>(customResponse, HttpStatus.OK);
   }
 
+
+  //Get transaction by id
+    @GetMapping("/{id}")
+    public ResponseEntity<?> show(@PathVariable Integer id) {
+      //response
+      CustomResponse response = new CustomResponse();
+
+      //Authorization : ALL
+
+      //validate
+      String checkMessage = internalTransactionValidator.checkGet(id);
+      if (!checkMessage.isEmpty()) {
+        response.setAll(false, checkMessage, null);
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        //finally
+      }
+
+      response.setAll(true, "Get transaction by id : " + id + " successfully.", internalTransactionService.getTransactionById(id));
+      return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    //update destination_zone
     }
 
 
