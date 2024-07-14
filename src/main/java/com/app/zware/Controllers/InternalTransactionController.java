@@ -1,10 +1,7 @@
 package com.app.zware.Controllers;
 
 import com.app.zware.Entities.*;
-import com.app.zware.HttpEntities.CustomResponse;
-import com.app.zware.HttpEntities.InternalDetailDTO;
-import com.app.zware.HttpEntities.InternalTransactionDTO;
-import com.app.zware.HttpEntities.OutboundDetailDTO;
+import com.app.zware.HttpEntities.*;
 import com.app.zware.Service.*;
 import com.app.zware.Validation.InternalTransactionValidator;
 import com.app.zware.Validation.WarehouseValidator;
