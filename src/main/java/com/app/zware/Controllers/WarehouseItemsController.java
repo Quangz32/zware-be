@@ -78,7 +78,7 @@ public class WarehouseItemsController {
 
   @PostMapping("")
   public ResponseEntity<?> store(@RequestBody WarehouseItems requestWarehouseItem,
-      HttpServletRequest request) {
+                                 HttpServletRequest request) {
     //response
     CustomResponse customResponse = new CustomResponse();
 
@@ -87,10 +87,10 @@ public class WarehouseItemsController {
     User user = userService.getRequestMaker(request);
 
     WarehouseZone warehouseZone = warehouseZoneService.getWarehouseZoneById(
-        requestWarehouseItem.getZone_id());
+            requestWarehouseItem.getZone_id());
 
     if (!user.getRole().equals("admin") && !user.getWarehouse_id()
-        .equals(warehouseZone.getWarehouse_id())) {
+            .equals(warehouseZone.getWarehouse_id())) {
       customResponse.setAll(false, "You are not allowed !", null);
       return new ResponseEntity<>(customResponse, HttpStatus.UNAUTHORIZED);
     }
@@ -104,7 +104,7 @@ public class WarehouseItemsController {
       //approve
       warehouseItemsService.createWarehouseItems(requestWarehouseItem);
       customResponse.setAll(true, "WarehouseItems has been created successfully",
-          requestWarehouseItem);
+              requestWarehouseItem);
       return new ResponseEntity<>(customResponse, HttpStatus.OK);
 
     }
@@ -126,7 +126,7 @@ public class WarehouseItemsController {
     } else {
       //approve
       customResponse.setAll(true, "Get data of warehouseItem with id: " + warehouseitemId +
-          " has been success", warehouseItemsService.getById(warehouseitemId));
+              " has been success", warehouseItemsService.getById(warehouseitemId));
       return new ResponseEntity<>(customResponse, HttpStatus.OK);
     }
   }
@@ -134,7 +134,7 @@ public class WarehouseItemsController {
 
   @DeleteMapping("/{warehouseitemid}")
   public ResponseEntity<?> destroy(@PathVariable("warehouseitemid") Integer warehouseitemId,
-      HttpServletRequest request) {
+                                   HttpServletRequest request) {
     //response
     CustomResponse customResponse = new CustomResponse();
     // Authorization : Admin and manager
@@ -146,11 +146,11 @@ public class WarehouseItemsController {
       return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
     }
     WarehouseZone warehouseZone = warehouseZoneService.getWarehouseZoneById(
-        warehouseItems.getZone_id());
+            warehouseItems.getZone_id());
 
     //Authorization
     if (!user.getRole().equals("admin") && (!user.getWarehouse_id()
-        .equals(warehouseZone.getWarehouse_id()))) {
+            .equals(warehouseZone.getWarehouse_id()))) {
       customResponse.setAll(false, "You are not allowed !", null);
       return new ResponseEntity<>(customResponse, HttpStatus.UNAUTHORIZED);
     }
@@ -163,14 +163,14 @@ public class WarehouseItemsController {
     } else {
       warehouseItemsService.deleteWarehouseItemsById(warehouseitemId);
       customResponse.setAll(true,
-          "WarehouseItem with id: " + warehouseitemId + " has been deleted successfully", null);
+              "WarehouseItem with id: " + warehouseitemId + " has been deleted successfully", null);
       return new ResponseEntity<>(customResponse, HttpStatus.OK);
     }
   }
 
   @PutMapping("/{warehouseitemid}")
   public ResponseEntity<?> update(@PathVariable Integer warehouseitemid,
-      @RequestBody WarehouseItems requestWarehouseItem, HttpServletRequest request) {
+                                  @RequestBody WarehouseItems requestWarehouseItem, HttpServletRequest request) {
     //response
     CustomResponse customResponse = new CustomResponse();
     //Authorization
@@ -182,15 +182,15 @@ public class WarehouseItemsController {
       return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
     }
     WarehouseZone warehouseZone = warehouseZoneService.getWarehouseZoneById(
-        warehouseItems.getZone_id());
+            warehouseItems.getZone_id());
     if (!user.getRole().equals("admin") && !user.getWarehouse_id()
-        .equals(warehouseZone.getWarehouse_id())) {
+            .equals(warehouseZone.getWarehouse_id())) {
       customResponse.setAll(false, "You are not allowed !", null);
       return new ResponseEntity<>(customResponse, HttpStatus.UNAUTHORIZED);
     }
 
     WarehouseItems mergedWarehouseItem = warehouseItemsService.merge(warehouseitemid,
-        requestWarehouseItem);
+            requestWarehouseItem);
 
     //Validation
     String checkMessage = warehouseItemValidator.checkPut(warehouseitemid, mergedWarehouseItem);
@@ -201,12 +201,13 @@ public class WarehouseItemsController {
     } else {
       WarehouseItems updated = warehouseItemsService.update(mergedWarehouseItem);
       customResponse.setAll(true,
-          "WarehouseItem with id : " + warehouseitemid + " has been updated", updated);
+              "WarehouseItem with id : " + warehouseitemid + " has been updated", updated);
       return new ResponseEntity<>(customResponse, HttpStatus.OK);
     }
 
 
   }
+
   @GetMapping(params = "zone_id")
   public ResponseEntity<?> getByZone(
           @RequestParam("zone_id") Integer zoneId) {
@@ -224,7 +225,7 @@ public class WarehouseItemsController {
     }
 
     //finally
-    customResponse.setAll(true, "Get Warehouse Item By Zone success",warehouseItemsService.findByZoneId(zoneId));
+    customResponse.setAll(true, "Get Warehouse Item By Zone success", warehouseItemsService.findByZoneId(zoneId));
 
     return new ResponseEntity<>(customResponse, HttpStatus.OK);
   }
@@ -247,7 +248,7 @@ public class WarehouseItemsController {
     }
 
     //finally
-    customResponse.setAll(true, "Get Warehouse Item By Warehouse success",warehouseItemsService.findByWarehouseId(warehouseId));
+    customResponse.setAll(true, "Get Warehouse Item By Warehouse success", warehouseItemsService.findByWarehouseId(warehouseId));
 
     return new ResponseEntity<>(customResponse, HttpStatus.OK);
   }
@@ -267,15 +268,14 @@ public class WarehouseItemsController {
 
     String checkWarehouseId = warehouseValidator.checkGet(warehouseId);
     String checkProductId = productValidator.checkGet(productId);
-     if (!checkWarehouseId.isEmpty()) {
+    if (!checkWarehouseId.isEmpty()) {
       customResponse.setAll(false, checkWarehouseId, null);
       return new ResponseEntity<>(customResponse, HttpStatus.OK);
     }
 
 
-
     //finally
-    customResponse.setAll(true, "Get Warehouse Item By Warehouse and Product success",warehouseItemsService.findByProductAndWarehouse(productId,warehouseId));
+    customResponse.setAll(true, "Get Warehouse Item By Warehouse and Product success", warehouseItemsService.findByProductAndWarehouse(productId, warehouseId));
 
     return new ResponseEntity<>(customResponse, HttpStatus.OK);
   }
@@ -297,13 +297,13 @@ public class WarehouseItemsController {
     }
 
     //finally
-    customResponse.setAll(true, "Get Warehouse Item By Product success",warehouseItemsService.findByProductId(productId));
+    customResponse.setAll(true, "Get Warehouse Item By Product success", warehouseItemsService.findByProductId(productId));
 
     return new ResponseEntity<>(customResponse, HttpStatus.OK);
   }
 
   @PostMapping("/inwarehouse_transaction")
-  public ResponseEntity<?> inwarehouseTransaction(@RequestBody InWarehouseTransactionDTO inWarehouseTransactionDTO,HttpServletRequest request){
+  public ResponseEntity<?> inwarehouseTransaction(@RequestBody InWarehouseTransactionDTO inWarehouseTransactionDTO, HttpServletRequest request) {
 
     // response
     CustomResponse customResponse = new CustomResponse();
@@ -322,42 +322,50 @@ public class WarehouseItemsController {
     }
 
 
-
     // validator
     String checkMessage = inWarehouseTransactionValidator.check(inWarehouseTransactionDTO);
-    if(!checkMessage.isEmpty()){
-      customResponse.setAll(false,checkMessage,null);
-      return new ResponseEntity<>(customResponse,HttpStatus.OK);
+    if (!checkMessage.isEmpty()) {
+      customResponse.setAll(false, checkMessage, null);
+      return new ResponseEntity<>(customResponse, HttpStatus.OK);
 
     }
 
-    for (InWarehouseDetailDTO detail : inWarehouseTransactionDTO.getDetails()){
+    for (InWarehouseDetailDTO detail : inWarehouseTransactionDTO.getDetails()) {
 
-     Item item = itemService.getItemById(detail.getItem_id());
-     if(item==null){
-       customResponse.setAll(false,"Item is not valid",null);
-       return new ResponseEntity<>(customResponse,HttpStatus.NOT_FOUND);
-     }
-     Integer productId = item.getProduct_id();
-     LocalDate expireDate = item.getExpire_date();
-
-
-      // Remove source zone
-      WarehouseItems removeItem = warehouseItemsService.removeFromZone(inWarehouseTransactionDTO.getSource_zone(),productId,expireDate,detail.getQuantity());
-
-      if(removeItem == null){
-        customResponse.setAll(false,"Insufficient quantity in source zone or not item in warehouse item",null);
-        return new ResponseEntity<>(customResponse,HttpStatus.FORBIDDEN);
+      Item item = itemService.getItemById(detail.getItem_id());
+      if (item == null) {
+        customResponse.setAll(false, "Item is not valid", null);
+        return new ResponseEntity<>(customResponse, HttpStatus.NOT_FOUND);
       }
-      // Add destination zone
-      WarehouseItems addItem = warehouseItemsService.addToZone(inWarehouseTransactionDTO.getDestination_zone(), productId,expireDate,detail.getQuantity());
+      Integer productId = item.getProduct_id();
+      LocalDate expireDate = item.getExpire_date();
+
+      // Kiểm tra số lượng trong kho nguồn
+      WarehouseItems sourceItem = warehouseItemsService.findByZoneAndProductAndDate(inWarehouseTransactionDTO.getSource_zone(), productId, expireDate);
+      if (sourceItem == null || sourceItem.getQuantity() < detail.getQuantity()) {
+        customResponse.setAll(false, "Not Enough Quantity in Source Zone", null);
+        return new ResponseEntity<>(customResponse, HttpStatus.FORBIDDEN);
+      }
+    }
+
+    // Nếu tất cả các mặt hàng đều hợp lệ, thực hiện thay đổi trong kho
+    for (InWarehouseDetailDTO detail : inWarehouseTransactionDTO.getDetails()) {
+      Item item = itemService.getItemById(detail.getItem_id());
+      Integer productId = item.getProduct_id();
+      LocalDate expireDate = item.getExpire_date();
+
+      // Xóa từ kho nguồn
+      WarehouseItems removedItem = warehouseItemsService.removeFromZone(inWarehouseTransactionDTO.getSource_zone(), productId, expireDate, detail.getQuantity());
+
+
+      // Thêm vào kho đích
+      WarehouseItems addedItem = warehouseItemsService.addToZone(inWarehouseTransactionDTO.getDestination_zone(), productId, expireDate, detail.getQuantity());
 
     }
-    customResponse.setAll(true,"InWarehouse Transaction successful!!",null);
-    return new ResponseEntity<>(customResponse,HttpStatus.OK);
+    // Nếu mọi thứ thành công
+    customResponse.setAll(true, "InWarehouse Transaction successful!!", null);
+    return new ResponseEntity<>(customResponse, HttpStatus.OK);
+
+
   }
-
-
-
-
 }
