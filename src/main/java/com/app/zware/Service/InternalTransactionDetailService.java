@@ -24,4 +24,7 @@ public class InternalTransactionDetailService {
      return internalTransactionDetailRepository.findByTransactionId(id);
   }
 
+  public InternalTransactionDetail findById(Integer id) {
+    return internalTransactionDetailRepository.findById(id).orElse(null);
+  }
 }

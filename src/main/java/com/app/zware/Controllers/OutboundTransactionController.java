@@ -228,46 +228,56 @@ public class OutboundTransactionController {
 
     // update new status
     OutboundTransaction transaction = outboundTransactionService.getOutboundTransactionById(id);
-    transaction.setStatus(status);
-    outboundTransactionService.save(transaction);
-
-    // set quantity in warehouse
     String messageResponse = "";
 
-    // get list details of transaction
-    List<OutboundTransactionDetail> detailList = transactionDetailService.getByOutboundTransaction(id);
+    if ("pending".equals(transaction.getStatus()) && "shipping".equals(status)) {
+      // get list details of transaction
+      List<OutboundTransactionDetail> detailList = transactionDetailService.getByOutboundTransaction(id);
 
-    // status = "shipping"
-    // remove item to zone
-    if ("shipping".equals(transaction.getStatus())) {
-      // loop check
+      // loop check quantity
       for (OutboundTransactionDetail detail : detailList) {
         // check validate quantity
         String checkedQuantity = outBoundTransactionValidator.checkQuantity(detail.getZone_id(), detail.getItem_id(), detail.getQuantity());
         if (!checkedQuantity.isEmpty()) {
-          customResponse.setAll(false, checkedQuantity, null);
+          // if any quantity check fails, set status to canceled and return
+          transaction.setStatus("canceled");
+          outboundTransactionService.save(transaction);
+          customResponse.setAll(false, "Insufficient quantity, status changed to canceled", null);
           return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
         }
       }
-      // loop remove
+
+      // if all quantity checks pass, proceed with shipping
       for (OutboundTransactionDetail detail : detailList) {
         // remove item
         warehouseItemsService.removeItemToZone(detail.getZone_id(), detail.getItem_id(), detail.getQuantity());
       }
+      transaction.setStatus("shipping");
+      outboundTransactionService.save(transaction);
       messageResponse = "Products are being shipped";
-    }
-    //status ="completed"
-    if ("completed".equals(transaction.getStatus())) {
-      messageResponse = "The outbound transaction was completed";
-    }
 
-    //status ="canceled"
-    if ("canceled".equals(transaction.getStatus())) {
+    } else if ("pending".equals(transaction.getStatus()) && "canceled".equals(status)) {
+      // Do nothing if status changes from pending to canceled
+      messageResponse = "Transaction has been canceled!";
+      transaction.setStatus("canceled");
+      outboundTransactionService.save(transaction);
+
+    } else if ("shipping".equals(transaction.getStatus()) && "canceled".equals(status)) {
+      // get list details of transaction
+      List<OutboundTransactionDetail> detailList = transactionDetailService.getByOutboundTransaction(id);
+
+      // loop to return items to warehouse
       for (OutboundTransactionDetail detail : detailList) {
-        // add item
+        // add item back
         warehouseItemsService.addItemToZone(detail.getZone_id(), detail.getItem_id(), detail.getQuantity());
       }
+      transaction.setStatus("canceled");
+      outboundTransactionService.save(transaction);
       messageResponse = "Transaction has been canceled. The product will be returned to the warehouse";
+    } else {
+      transaction.setStatus(status);
+      outboundTransactionService.save(transaction);
+      messageResponse = "Transaction has been " + status + "!";
     }
 
     customResponse.setAll(true, messageResponse, null);

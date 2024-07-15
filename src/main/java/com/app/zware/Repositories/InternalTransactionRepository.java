@@ -22,4 +22,7 @@ public interface InternalTransactionRepository extends JpaRepository<InternalTra
 
     @Query(value = "SELECT * FROM internaltransactions WHERE type = 'outbound' AND status = 'pending'", nativeQuery = true)
     List<InternalTransaction> findAllInboundInternal();
+
+    @Query(value = "SELECT * FROM internaltransactions WHERE id = ?1", nativeQuery = true)
+    InternalTransaction getTransactionById(Integer id);
 }

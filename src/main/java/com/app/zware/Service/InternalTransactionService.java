@@ -40,4 +40,8 @@ public class InternalTransactionService {
   public List<InternalTransaction> getAllInboundInternal() {
     return internalTransactionRepository.findAllInboundInternal();
   }
+
+  public InternalTransaction getTransactionById(Integer id){
+    return internalTransactionRepository.getTransactionById(id);
+  }
 }
