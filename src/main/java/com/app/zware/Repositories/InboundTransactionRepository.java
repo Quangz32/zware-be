@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface InboundTransactionRepository extends JpaRepository<InboundTransaction, Integer> {
 
-  @Query(value = "select * from inboundtransactions where isdeleted=false", nativeQuery = true)
+  @Query(value = "select * from inboundtransactions where isdeleted=false ORDER BY id DESC", nativeQuery = true)
   List<InboundTransaction> findAll();
 
 
@@ -20,6 +20,6 @@ public interface InboundTransactionRepository extends JpaRepository<InboundTrans
   @Query(value = "select case when COUNT(id)>0 THEN true ELSE false END FROM inboundtransactions where id=?1 and isdeleted = false")
   boolean existByIdAndIsDeletedFalse(Integer id);
 
-  @Query(value = "SELECT * FROM inboundtransactions where warehouse_id=?1 and isdeleted =0",nativeQuery = true)
+  @Query(value = "SELECT * FROM inboundtransactions where warehouse_id=?1 and isdeleted =0 ORDER BY id DESC",nativeQuery = true)
   List <InboundTransaction> findByWarehouse (Integer warehouseId);
 }

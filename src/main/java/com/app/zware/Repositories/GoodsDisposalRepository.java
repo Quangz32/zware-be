@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface GoodsDisposalRepository extends JpaRepository<GoodsDisposal, Integer> {
 
-  @Query(value = "select * from goodsdisposal where isdeleted=false", nativeQuery = true)
+  @Query(value = "select * from goodsdisposal where isdeleted=false ORDER BY id DESC", nativeQuery = true)
   List<GoodsDisposal> findAll();
 
 
@@ -21,6 +21,6 @@ public interface GoodsDisposalRepository extends JpaRepository<GoodsDisposal, In
   @Query("select case when COUNT(id)>0 THEN true ELSE false END FROM goodsdisposal g where g.id=?1 and g.isdeleted = false")
   boolean existByIdAndIsDeletedFalse(Integer id);
 
-  @Query(value = "SELECT * FROM goodsdisposal WHERE warehouse_id=?1 and isdeleted=0",nativeQuery = true)
+  @Query(value = "SELECT * FROM goodsdisposal WHERE warehouse_id=?1 and isdeleted=0 ORDER BY id DESC",nativeQuery = true)
   List<GoodsDisposal> findByWarehouse(Integer warehouseId);
 }
