@@ -33,12 +33,20 @@ public class InternalTransactionService {
       return internalTransactionRepository.findByWarehouse(warehouseId);
     }
 
-  public List<InternalTransaction> getByDestinationId(Integer warehouseId) {
-    return internalTransactionRepository.findByDestinationId(warehouseId);
+  public List<InternalTransaction> getOutboundByDestinationId(Integer warehouseId) {
+    return internalTransactionRepository.findOutboundByDestinationId(warehouseId);
+  }
+
+  public List<InternalTransaction> getInboundByDestinationId(Integer warehouseId) {
+    return internalTransactionRepository.findInboundBySourceId(warehouseId);
   }
 
   public List<InternalTransaction> getAllInboundInternal() {
     return internalTransactionRepository.findAllInboundInternal();
+  }
+
+  public List<InternalTransaction> getAllOutboundInternal() {
+    return internalTransactionRepository.findAllOutboundInternal();
   }
 
   public InternalTransaction getTransactionById(Integer id){
