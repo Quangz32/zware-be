@@ -70,4 +70,40 @@ public class HistoryController {
     customResponse.setAll(true, "Get history success!", histories);
     return ResponseEntity.ok(customResponse);
   }
+
+  @GetMapping("last_quantity_before_date")
+  public ResponseEntity<?> getLastQuantityBeforeDate(
+      @RequestParam("warehouse_id") Integer warehouseId,
+      @RequestParam("product_id") Integer productId,
+      @RequestParam("date") LocalDate date,
+      HttpServletRequest request) {
+
+    //response
+    CustomResponse customResponse = new CustomResponse();
+
+    //Authorization:
+    User requestMaker = userService.getRequestMaker(request);
+    if (!requestMaker.getRole().equals("admin") &&
+        !requestMaker.getWarehouse_id().equals(warehouseId)) {
+      customResponse.setAll(false, "You are not allowed", null);
+      return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    //validate
+    if (!warehouseService.existById(warehouseId)) {
+      customResponse.setAll(false, "Warehouse Id is not valid", null);
+      return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    if (!productService.existById(productId)) {
+      customResponse.setAll(false, "Product Id is not valid", null);
+      return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    //passed validation
+    Integer lastQuantityBeforeDate =
+        historyService.getLastQuantityBeforeDate(warehouseId, productId, date);
+    customResponse.setAll(true, "success!", lastQuantityBeforeDate);
+    return ResponseEntity.ok(customResponse);
+  }
 }

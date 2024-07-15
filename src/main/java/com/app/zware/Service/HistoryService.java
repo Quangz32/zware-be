@@ -23,5 +23,11 @@ public class HistoryService {
         startDate, endDate);
   }
 
+  public Integer getLastQuantityBeforeDate(Integer warehouseId,
+      Integer productId, LocalDate date ){
+    History history = historyRepository.findLastBeforeDate(warehouseId, productId, date);
 
+    if (history == null) return 0;
+    return history.getQuantity();
+  }
 }

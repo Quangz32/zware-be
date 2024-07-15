@@ -24,4 +24,18 @@ public interface HistoryRepository extends JpaRepository<History, Integer> {
       @Param("productId") Integer productId,
       @Param("startDate") LocalDate startDate,
       @Param("endDate") LocalDate endDate);
+
+  @Query(
+      value = "select * from WarehouseHistories\n"
+          + "WHERE warehouse_id = :warehouseId \n"
+          + "AND product_id = :productId\n"
+          + "AND date < :date \n"
+          + "ORDER BY id DESC\n"
+          + "LIMIT 1",
+      nativeQuery = true)
+
+  History findLastBeforeDate(
+      @Param("warehouseId") Integer warehouseId,
+      @Param("productId") Integer productId,
+      @Param("date") LocalDate date);
 }
