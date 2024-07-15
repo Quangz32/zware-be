@@ -248,8 +248,8 @@ public class InternalTransactionController {
       return new ResponseEntity<>(customResponse, HttpStatus.OK);
     }
 
-    @GetMapping("/inbound")
-    public ResponseEntity<?> getInboundByDestinationId(@RequestParam("warehouse_id") Integer destinationId){
+    @GetMapping("/outbound")
+    public ResponseEntity<?> getOutboundByDestinationId(@RequestParam("warehouse_id") Integer destinationId){
       //Response
       CustomResponse customResponse = new CustomResponse();
       //Validation
@@ -260,24 +260,46 @@ public class InternalTransactionController {
         //finally
       }
       //Get all transaction when source or destination = warehouseID
-      customResponse.setAll(true, "Get Inbound Internal Transaction success",
-              internalTransactionService.getByDestinationId(destinationId));
+      customResponse.setAll(true, "Get Outbound Internal Transaction success",
+              internalTransactionService.getOutboundByDestinationId(destinationId));
 
       return new ResponseEntity<>(customResponse, HttpStatus.OK);
     }
+
+  @GetMapping("/inbound")
+  public ResponseEntity<?> getInboundByDestinationId(@RequestParam("warehouse_id") Integer sourceId){
+    //Response
+    CustomResponse customResponse = new CustomResponse();
+    //Validation
+    String checkMessage = warehouseValidator.checkGet(sourceId);
+    if (!checkMessage.isEmpty()) {
+      customResponse.setAll(false, checkMessage, null);
+      return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
+      //finally
+    }
+    customResponse.setAll(true, "Get Inbound Internal Transaction success",
+            internalTransactionService.getInboundByDestinationId(sourceId));
+
+    return new ResponseEntity<>(customResponse, HttpStatus.OK);
+  }
+
+  @GetMapping("/all_outbound")
+  public ResponseEntity<?> getAllOutboundInternal(){
+    //Response
+    CustomResponse customResponse = new CustomResponse();
+    //Validation
+    customResponse.setAll(true, "Get All Outbound Internal Transaction success",
+            internalTransactionService.getAllOutboundInternal());
+
+    return new ResponseEntity<>(customResponse, HttpStatus.OK);
+  }
 
   @GetMapping("/all_inbound")
   public ResponseEntity<?> getAllInboundInternal(){
     //Response
     CustomResponse customResponse = new CustomResponse();
     //Validation
-//    String checkMessage = warehouseValidator.checkGet(destinationId);
-//    if (!checkMessage.isEmpty()) {
-//      customResponse.setAll(false, checkMessage, null);
-//      return new ResponseEntity<>(customResponse, HttpStatus.OK);
-//      //finally
-//    }
-    customResponse.setAll(true, "Get Inbound Internal Transaction success",
+    customResponse.setAll(true, "Get All Inbound Internal Transaction success",
             internalTransactionService.getAllInboundInternal());
 
     return new ResponseEntity<>(customResponse, HttpStatus.OK);

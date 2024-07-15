@@ -75,7 +75,7 @@ public class InternalTransactionDetailController {
 
         // Authorization: Admin or transaction maker
         User user = userService.getRequestMaker(request);
-        if (!user.getRole().equals("admin") && !user.getId().equals(transaction.getMaker_id())) {
+        if (!user.getRole().equals("admin") && !user.getWarehouse_id().equals(transaction.getDestination_warehouse())) {
             customResponse.setAll(false, "You are not allowed", null);
             return new ResponseEntity<>(customResponse, HttpStatus.UNAUTHORIZED);
         }
