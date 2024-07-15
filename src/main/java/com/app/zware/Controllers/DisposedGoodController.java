@@ -1,14 +1,14 @@
 package com.app.zware.Controllers;
 
-import com.app.zware.Entities.DisposedGood;
-import com.app.zware.Entities.GoodsDisposal;
-import com.app.zware.Entities.User;
+import com.app.zware.Entities.*;
 import com.app.zware.HttpEntities.CustomResponse;
-import com.app.zware.Service.DisposedGoodService;
-import com.app.zware.Service.GoodsDisposalService;
-import com.app.zware.Service.UserService;
+import com.app.zware.Repositories.DisposedGoodRespository;
+import com.app.zware.Repositories.GoodsDisposalRepository;
+import com.app.zware.Repositories.WarehouseItemsRepository;
+import com.app.zware.Service.*;
 import com.app.zware.Validation.DisposedGoodValidator;
 import com.app.zware.Validation.GoodsDisposalValidator;
+import com.app.zware.Validation.WarehouseValidator;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,6 +22,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/disposed_goods")
@@ -41,6 +44,24 @@ public class DisposedGoodController {
 
   @Autowired
   GoodsDisposalValidator goodsDisposalValidator;
+
+  @Autowired
+  WarehouseItemsRepository warehouseItemsRepository;
+
+  @Autowired
+  GoodsDisposalRepository goodsDisposalRepository;
+
+  @Autowired
+  ItemService itemService;
+
+  @Autowired
+  DisposedGoodRespository disposedGoodRespository;
+
+  @Autowired
+  WarehouseItemsService warehouseItemsService;
+
+  @Autowired
+  WarehouseValidator warehouseValidator;
 
   @GetMapping("")
   public ResponseEntity<?> index() {
@@ -194,6 +215,66 @@ public class DisposedGoodController {
     //finally
     customResponse.setAll(false, "get disposal good by goods disposal success ",
         disposedGoodService.getByGoodDisposal(goodDisposalId));
+    return new ResponseEntity<>(customResponse, HttpStatus.OK);
+  }
+
+  // xoa tat ca ca san pham het han trong 1 kho
+  @PostMapping("/remove_expire_product_by_warehouse/{warehouseId}")
+  public ResponseEntity<?> removeExpiredProductByWarehouse (@PathVariable("warehouseId") Integer warehouseId,HttpServletRequest request) {
+    // Response
+    CustomResponse customResponse = new CustomResponse();
+
+    // Authorization ( de sau)
+    User requestMaker = userService.getRequestMaker(request);
+    boolean isAdmin = "admin".equals(requestMaker.getRole());
+
+    boolean isManager = !isAdmin && requestMaker.getWarehouse_id() != null &&
+            requestMaker.getWarehouse_id().equals(warehouseId);
+
+    // Authorization
+    if (!isAdmin && !isManager){
+      customResponse.setAll(false,"You are not allowed",null);
+      return new ResponseEntity<>(customResponse,HttpStatus.UNAUTHORIZED);
+    }
+
+    // Validation
+    String message = warehouseValidator.checkGet(warehouseId);
+    if(!message.isEmpty()){
+      customResponse.setAll(false,message,null);
+      return new ResponseEntity<>(customResponse,HttpStatus.NOT_FOUND);
+    }
+
+    List<WarehouseItems> expriredItems = warehouseItemsRepository.findExpiredByWarehouse(warehouseId);
+    if (expriredItems == null||expriredItems.isEmpty()) {
+      customResponse.setAll(false, "No expired products found in warehouse" , null);
+      return new ResponseEntity<>(customResponse, HttpStatus.NOT_FOUND);
+    }
+
+    // Tao phieu huy hang
+    GoodsDisposal disposal = new GoodsDisposal();
+    disposal.setWarehouse_id(warehouseId);
+    disposal.setMaker_id(requestMaker.getId());
+    disposal.setDate(LocalDate.now());
+    disposal.setStatus("complete");
+
+    // Save goodDisposal
+    GoodsDisposal savedDisposal = goodsDisposalRepository.save(disposal);
+
+    for (WarehouseItems warehouseItems : expriredItems) {
+      DisposedGood disposedGood = new DisposedGood();
+      disposedGood.setDisposal_id(savedDisposal.getId());
+      disposedGood.setReason("expired");
+      Item itemExpired = itemService.getItemById(warehouseItems.getItem_id());
+      disposedGood.setItem_id(itemExpired.getId());
+      disposedGood.setQuantity(warehouseItems.getQuantity());
+      disposedGood.setZone_id(warehouseItems.getZone_id());
+
+      disposedGoodRespository.save(disposedGood);
+
+      // remove
+      warehouseItemsService.removeFromZone(warehouseItems.getZone_id(), itemExpired.getProduct_id(), itemExpired.getExpire_date(), warehouseItems.getQuantity());
+    }
+    customResponse.setAll(true, "Delete Expired Items by Warehouse success", null);
     return new ResponseEntity<>(customResponse, HttpStatus.OK);
   }
 }

@@ -1,5 +1,4 @@
 package com.app.zware.Service;
-
 import com.app.zware.Entities.DisposedGood;
 import com.app.zware.Repositories.DisposedGoodRespository;
 import java.util.List;
@@ -21,9 +20,10 @@ public class DisposedGoodService {
     return disposedGoodRespository.findById(id).orElse(null);
   }
 
-  public List<DisposedGood> getByGoodDisposal(Integer disposalId){
+  public List<DisposedGood> getByGoodDisposal(Integer disposalId) {
     return disposedGoodRespository.findByGoodDisposalId(disposalId);
   }
+
   public DisposedGood createDisposedGood(DisposedGood request) {
     return disposedGoodRespository.save(request);
   }
@@ -43,7 +43,7 @@ public class DisposedGoodService {
     }
 
     Optional.ofNullable(newDisposedGood.getDisposal_id())
-        .ifPresent(oldDisposedGood::setDisposal_id);
+            .ifPresent(oldDisposedGood::setDisposal_id);
     Optional.ofNullable(newDisposedGood.getItem_id()).ifPresent(oldDisposedGood::setItem_id);
     Optional.of(newDisposedGood.getQuantity()).ifPresent(oldDisposedGood::setQuantity);
     Optional.ofNullable(newDisposedGood.getReason()).ifPresent(oldDisposedGood::setReason);
@@ -54,6 +54,4 @@ public class DisposedGoodService {
   public DisposedGood update(DisposedGood mergeDisposalGood) {
     return disposedGoodRespository.save(mergeDisposalGood);
   }
-
-
 }

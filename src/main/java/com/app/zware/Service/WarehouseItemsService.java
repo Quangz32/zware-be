@@ -241,4 +241,9 @@ public class WarehouseItemsService {
       return warehouseItemsRepository.save(wi);
     }
   }
+
+  // findExpiredByWarehouse
+  public List<WarehouseItems> findExpiredByWarehouse(Integer warehouseId){
+     return warehouseItemsRepository.findExpiredByWarehouse(warehouseId);
+  }
 }

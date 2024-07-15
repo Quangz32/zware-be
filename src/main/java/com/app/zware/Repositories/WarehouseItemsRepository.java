@@ -98,4 +98,11 @@ public interface WarehouseItemsRepository extends JpaRepository<WarehouseItems, 
           "          WHERE i.product_id = ?1 AND wz.warehouse_id= ?2 AND i.expire_date > CURRENT_DATE AND wi.isdeleted = false AND i.isdeleted = false", nativeQuery = true)
   Integer findTotalQuantityByProductIdAndWarehouse(Integer productId, Integer warehouseId);
 
+  // List ExpiredItem by Warehouse
+  @Query(value = " Select wi.* from WarehouseItems wi " +
+                 "JOIN Items i on i.id = wi.item_id " +
+                 "JOIN WarehouseZones wz on wi.zone_id = wz.id " +
+                 "JOIN Warehouses w on w.id = wz.warehouse_id  " +
+                 "where i.expire_date < CURRENT_DATE() and w.id = ?1 and wi.isdeleted = false",nativeQuery = true)
+  List<WarehouseItems> findExpiredByWarehouse(Integer warehouseId);
 }
