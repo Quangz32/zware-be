@@ -158,7 +158,7 @@ public class InternalTransactionController {
         customResponse.setAll(false, "Invalid status transition", null);
         return new ResponseEntity<>(customResponse, HttpStatus.BAD_REQUEST);
       }
-      if (newStatus.equals("shipping") && !isAdmin && !isSourceOwner) {
+      if (newStatus.equals("shipping") && !isAdmin && !isSourceOwner && !isDestinationOwner) {
         customResponse.setAll(false, "You are not allowed to change status to shipping", null);
         return new ResponseEntity<>(customResponse, HttpStatus.UNAUTHORIZED);
       }
