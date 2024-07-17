@@ -104,7 +104,30 @@ public class InboundTransactionController {
         inboundTransactionDetailService.save(detailToSave);
       }
 
-    customResponse.setAll(true, "Create inbound transaction success", savedTransaction);
+
+
+     // Add to zone
+    List<InboundTransactionDetail> details = inboundTransactionDetailService.findByInboundTransactionId(savedTransaction.getId());
+    for (InboundTransactionDetail detail : details){
+      Integer zoneId = detail.getZone_id();
+      Integer quantity = detail.getQuantity();
+      Integer itemId = detail.getItem_id();
+
+      Item item = itemService.getItemById(itemId);
+      Integer productId = item.getProduct_id();
+      LocalDate expireDate = item.getExpire_date();
+
+      WarehouseItems updateWi = warehouseItemsService.addToZone(zoneId,productId,expireDate,quantity);
+      if(updateWi == null){
+        customResponse.setAll(false,"Failed to update warehouse items",null);
+        return new ResponseEntity<>(customResponse,HttpStatus.NOT_FOUND);
+      }
+    }
+
+    savedTransaction.setStatus("completed");
+    service.update(savedTransaction);
+
+    customResponse.setAll(true,"Create inbound transaction success and update warehouse item",null);
     return ResponseEntity.ok(customResponse);
   }
 
@@ -267,70 +290,70 @@ public class InboundTransactionController {
     return new ResponseEntity<>(customResponse, HttpStatus.OK);
   }
 
-  @PutMapping("{id}/changeStatus")
-  public ResponseEntity<?> changeStatus (@PathVariable Integer id,
-                                         @RequestBody Map<String, String> requestBody,
-                                         HttpServletRequest request){
-
-    // response
-    CustomResponse customResponse = new CustomResponse();
-
-
-
-    // Authorization
-    User requestMaker = userService.getRequestMaker(request);
-    InboundTransaction transaction = service.getById(id);
-    if(!requestMaker.getRole().equals("admin")&&!requestMaker.getWarehouse_id().equals(transaction.getWarehouse_id())){
-      customResponse.setAll(false,"You are not allowed",null);
-      return new ResponseEntity<>(customResponse,HttpStatus.UNAUTHORIZED);
-
-    }
-
-    // checkId Transaction
-    String checkId = validator.checkGet(id);
-    if(!checkId.isEmpty()){
-      customResponse.setAll(false,checkId,null);
-      return new ResponseEntity<>(customResponse,HttpStatus.BAD_REQUEST);
-    }
-    // Status
-    String status = requestBody.get("status");
-    if (status==null||status.isEmpty()){
-      customResponse.setAll(false,"Status is required",null);
-      return new ResponseEntity<>(customResponse,HttpStatus.BAD_REQUEST);
-    }
-
-    // Check Status
-    String checkStatus = validator.checkStatus(transaction,status);
-    if(!checkStatus.isEmpty()){
-      customResponse.setAll(false,checkStatus,null);
-      return new ResponseEntity<>(customResponse,HttpStatus.BAD_REQUEST);
-
-    }
-    // update status
-    transaction.setStatus(status);
-    service.update(transaction);
-
-    if("completed".equals(status)){
-      List<InboundTransactionDetail> details = inboundTransactionDetailService.findByInboundTransactionId(transaction.getId());
-       for (InboundTransactionDetail detail: details){
-         Integer zoneId = detail.getZone_id();
-         Integer quantity = detail.getQuantity();
-         Integer itemId = detail.getItem_id();
-
-         Item item = itemService.getItemById(itemId);
-         Integer productId = item.getProduct_id();
-         LocalDate expireDate =  item.getExpire_date();
-
-         WarehouseItems updateWi = warehouseItemsService.addToZone(zoneId,productId,expireDate,quantity);
-         if (updateWi==null){
-           customResponse.setAll(false,"Failed to update warehouse items",null);
-           return new ResponseEntity<>(customResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-         }
-
-       }
-    }
-      customResponse.setAll(true, "Status updated successfully", null);
-      return new ResponseEntity<>(customResponse, HttpStatus.OK);
-  }
+//  @PutMapping("{id}/changeStatus")
+//  public ResponseEntity<?> changeStatus (@PathVariable Integer id,
+//                                         @RequestBody Map<String, String> requestBody,
+//                                         HttpServletRequest request){
+//
+//    // response
+//    CustomResponse customResponse = new CustomResponse();
+//
+//
+//
+//    // Authorization
+//    User requestMaker = userService.getRequestMaker(request);
+//    InboundTransaction transaction = service.getById(id);
+//    if(!requestMaker.getRole().equals("admin")&&!requestMaker.getWarehouse_id().equals(transaction.getWarehouse_id())){
+//      customResponse.setAll(false,"You are not allowed",null);
+//      return new ResponseEntity<>(customResponse,HttpStatus.UNAUTHORIZED);
+//
+//    }
+//
+//    // checkId Transaction
+//    String checkId = validator.checkGet(id);
+//    if(!checkId.isEmpty()){
+//      customResponse.setAll(false,checkId,null);
+//      return new ResponseEntity<>(customResponse,HttpStatus.BAD_REQUEST);
+//    }
+//    // Status
+//    String status = requestBody.get("status");
+//    if (status==null||status.isEmpty()){
+//      customResponse.setAll(false,"Status is required",null);
+//      return new ResponseEntity<>(customResponse,HttpStatus.BAD_REQUEST);
+//    }
+//
+//    // Check Status
+//    String checkStatus = validator.checkStatus(transaction,status);
+//    if(!checkStatus.isEmpty()){
+//      customResponse.setAll(false,checkStatus,null);
+//      return new ResponseEntity<>(customResponse,HttpStatus.BAD_REQUEST);
+//
+//    }
+//    // update status
+//    transaction.setStatus(status);
+//    service.update(transaction);
+//
+//    if("completed".equals(status)){
+//      List<InboundTransactionDetail> details = inboundTransactionDetailService.findByInboundTransactionId(transaction.getId());
+//       for (InboundTransactionDetail detail: details){
+//         Integer zoneId = detail.getZone_id();
+//         Integer quantity = detail.getQuantity();
+//         Integer itemId = detail.getItem_id();
+//
+//         Item item = itemService.getItemById(itemId);
+//         Integer productId = item.getProduct_id();
+//         LocalDate expireDate =  item.getExpire_date();
+//
+//         WarehouseItems updateWi = warehouseItemsService.addToZone(zoneId,productId,expireDate,quantity);
+//         if (updateWi==null){
+//           customResponse.setAll(false,"Failed to update warehouse items",null);
+//           return new ResponseEntity<>(customResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+//         }
+//
+//       }
+//    }
+//      customResponse.setAll(true, "Status updated successfully", null);
+//      return new ResponseEntity<>(customResponse, HttpStatus.OK);
+//  }
 
 }
