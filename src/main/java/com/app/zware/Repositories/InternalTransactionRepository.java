@@ -12,6 +12,9 @@ public interface InternalTransactionRepository extends JpaRepository<InternalTra
     @Query(value = "select case when COUNT(id)>0 THEN true ELSE false END FROM internaltransactions where id=?1")
     boolean existByIdAndIsDeletedFalse(Integer id);
 
+    @Query(value = "select * from internaltransactions ORDER BY id DESC", nativeQuery = true)
+    List<InternalTransaction> findAll();
+
 //    @Query(value = "SELECT * FROM internaltransactions WHERE (source_warehouse = ?1 OR destination_warehouse = ?1)", nativeQuery = true)
 //    List<InternalTransaction> findByWarehouse(Integer warehouseId);
 //    @Query(value = "SELECT * FROM internaltransactions WHERE (type = 'inbound' AND destination_warehouse = ?1) OR (type = 'outbound' AND source_warehouse = ?1)", nativeQuery = true)
